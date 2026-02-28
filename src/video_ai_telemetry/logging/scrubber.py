@@ -71,9 +71,7 @@ class ScrubbingSpanProcessor(SpanProcessor):
         callback: Callable[[str, str, re.Pattern], bool] | None = None,
     ) -> None:
         patterns = DEFAULT_SCRUB_PATTERNS + (extra_patterns or [])
-        self._compiled_patterns: list[re.Pattern] = [
-            re.compile(p, re.IGNORECASE) for p in patterns
-        ]
+        self._compiled_patterns: list[re.Pattern] = [re.compile(p, re.IGNORECASE) for p in patterns]
         self._callback = callback
 
     # ------------------------------------------------------------------

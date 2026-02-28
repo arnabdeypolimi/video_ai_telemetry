@@ -103,7 +103,6 @@ class TestPendingSnapshot:
 
     def test_snapshot_has_pending_attribute(self, tracer, provider, exporter):
         """Snapshot must have rt_video.span.pending = True."""
-        from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 
         captured = []
 

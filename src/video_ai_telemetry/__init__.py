@@ -26,8 +26,10 @@ from video_ai_telemetry.logging.api import (
     exception,
     info,
     notice,
-    trace_log as trace,
     warning,
+)
+from video_ai_telemetry.logging.api import (
+    trace_log as trace,
 )
 from video_ai_telemetry.tracing.pipeline import async_stage, pipeline_stage, stage
 

@@ -1,6 +1,6 @@
 from video_ai_telemetry.conventions.attributes import (
-    AVSyncAttributes,
     AvatarAttributes,
+    AVSyncAttributes,
     EventLoopAttributes,
     GPUAttributes,
     InferenceAttributes,

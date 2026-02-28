@@ -34,8 +34,8 @@ dev = [
     "pre-commit>=3.7.0",
 ]
 
-[tool.uv]
-dev-dependencies = ["video-ai-telemetry[dev,all]"]
+[dependency-groups]
+dev = ["video-ai-telemetry[dev,all]"]
 
 [tool.hatch.version]
 source = "vcs"
@@ -46,6 +46,8 @@ packages = ["src/video_ai_telemetry"]
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP", "B", "C4"]
 
 [tool.mypy]

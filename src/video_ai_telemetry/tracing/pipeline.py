@@ -6,14 +6,13 @@ for a stable public API. Yields _NoOpStageContext when the sampler skips.
 
 from __future__ import annotations
 
-import contextlib
 import functools
 import inspect
 import time
-from collections.abc import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator, Callable, Generator
 from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Callable, ParamSpec, TypeVar
+from typing import Any, ParamSpec, TypeVar
 
 from opentelemetry import trace
 from opentelemetry.trace import StatusCode

@@ -97,9 +97,7 @@ class AVSyncTracker:
         now_ns = time.time_ns()
         expired_count = 0
         with self._lock:
-            expired = [
-                cid for cid, (_, expiry_ns) in self._pending.items() if now_ns > expiry_ns
-            ]
+            expired = [cid for cid, (_, expiry_ns) in self._pending.items() if now_ns > expiry_ns]
             for cid in expired:
                 del self._pending[cid]
                 expired_count += 1

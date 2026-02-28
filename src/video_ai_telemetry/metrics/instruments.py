@@ -5,7 +5,7 @@ All instruments are created once at init() time — never inside loops.
 
 from __future__ import annotations
 
-from opentelemetry.metrics import Histogram, Counter, Meter
+from opentelemetry.metrics import Counter, Histogram, Meter
 
 
 class MetricInstruments:
