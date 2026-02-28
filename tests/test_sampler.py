@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 from unittest.mock import patch
 
-from avatar_otel.tracing.sampler import AdaptiveSampler
+from video_ai_telemetry.tracing.sampler import AdaptiveSampler
 
 
 class TestAdaptiveSampler:

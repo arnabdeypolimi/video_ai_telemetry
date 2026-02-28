@@ -8,7 +8,7 @@ from opentelemetry import context as otel_context, trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor, SpanExporter, SpanExportResult
 
-from avatar_otel.tracing.propagation import (
+from video_ai_telemetry.tracing.propagation import (
     patch_all,
     patch_process_pool_executor,
     patch_thread_pool_executor,

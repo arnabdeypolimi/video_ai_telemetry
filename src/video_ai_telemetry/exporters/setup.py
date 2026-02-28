@@ -14,7 +14,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 if TYPE_CHECKING:
-    from avatar_otel.config import AvatarOtelConfig
+    from video_ai_telemetry.config import AvatarOtelConfig
 
 
 def create_resource(config: AvatarOtelConfig) -> Resource:

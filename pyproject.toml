@@ -3,7 +3,7 @@ requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
-name = "avatar-otel"
+name = "video-ai-telemetry"
 dynamic = ["version"]
 requires-python = ">=3.10"
 description = "OpenTelemetry observability for real-time AI avatar and video pipelines"
@@ -23,7 +23,7 @@ dependencies = [
 pytorch = ["torch>=2.0.0"]
 gpu = ["pynvml>=11.5.0"]
 webrtc = ["aiortc>=1.9.0"]
-all = ["avatar-otel[pytorch,gpu,webrtc]"]
+all = ["video-ai-telemetry[pytorch,gpu,webrtc]"]
 dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
@@ -35,13 +35,13 @@ dev = [
 ]
 
 [tool.uv]
-dev-dependencies = ["avatar-otel[dev,all]"]
+dev-dependencies = ["video-ai-telemetry[dev,all]"]
 
 [tool.hatch.version]
 source = "vcs"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/avatar_otel"]
+packages = ["src/video_ai_telemetry"]
 
 [tool.ruff]
 line-length = 100
@@ -56,4 +56,4 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "--cov=avatar_otel --cov-report=term-missing -q"
+addopts = "--cov=video_ai_telemetry --cov-report=term-missing -q"

@@ -3,7 +3,7 @@ import asyncio
 import logging
 import time
 
-logger = logging.getLogger("avatar_otel.eventloop")
+logger = logging.getLogger("video_ai_telemetry.eventloop")
 
 _original_handle_run = None
 _warning_callback = None

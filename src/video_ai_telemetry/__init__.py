@@ -1,26 +1,26 @@
-"""avatar-otel: OpenTelemetry observability for real-time AI avatar and video pipelines.
+"""video-ai-telemetry: OpenTelemetry observability for real-time AI avatar and video pipelines.
 
-Everything a user needs is importable from `avatar_otel` directly:
+Everything a user needs is importable from `video_ai_telemetry` directly:
 
-    import avatar_otel
+    import video_ai_telemetry
 
-    sdk = avatar_otel.init(service_name="artalk-avatar")
+    sdk = video_ai_telemetry.init(service_name="artalk-avatar")
 
-    @avatar_otel.pipeline_stage("flame_inference")
+    @video_ai_telemetry.pipeline_stage("flame_inference")
     async def run_model(...): ...
 
-    async with avatar_otel.stage("render") as s:
+    async with video_ai_telemetry.stage("render") as s:
         s.record("vertex_count", 12345)
 
-    avatar_otel.info("Pipeline started", target_fps=30)
+    video_ai_telemetry.info("Pipeline started", target_fps=30)
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from avatar_otel._version import __version__
-from avatar_otel.logging.api import (
+from video_ai_telemetry._version import __version__
+from video_ai_telemetry.logging.api import (
     debug,
     error,
     exception,
@@ -29,7 +29,7 @@ from avatar_otel.logging.api import (
     trace_log as trace,
     warning,
 )
-from avatar_otel.tracing.pipeline import async_stage, pipeline_stage, stage
+from video_ai_telemetry.tracing.pipeline import async_stage, pipeline_stage, stage
 
 __all__ = [
     "__version__",
@@ -96,9 +96,9 @@ class RTVideoOtelSDK:
         if self._gpu_monitor is not None:
             self._gpu_monitor.stop()
 
-        from avatar_otel.instrumentation.eventloop import uninstall_eventloop_monitor
-        from avatar_otel.instrumentation.pytorch import uninstrument_pytorch
-        from avatar_otel.tracing.propagation import unpatch_all
+        from video_ai_telemetry.instrumentation.eventloop import uninstall_eventloop_monitor
+        from video_ai_telemetry.instrumentation.pytorch import uninstrument_pytorch
+        from video_ai_telemetry.tracing.propagation import unpatch_all
 
         uninstrument_pytorch()
         unpatch_all()
@@ -110,7 +110,7 @@ class RTVideoOtelSDK:
 
 
 def init(**kwargs: Any) -> RTVideoOtelSDK:
-    """Initialize avatar-otel. One-liner to get full observability.
+    """Initialize video-ai-telemetry. One-liner to get full observability.
 
     All kwargs are passed to AvatarOtelConfig (Pydantic Settings), which also
     reads from AVATAR_OTEL_* environment variables and .env files.
@@ -118,25 +118,25 @@ def init(**kwargs: Any) -> RTVideoOtelSDK:
     Returns an RTVideoOtelSDK handle with .frame_aggregator, .av_tracker,
     .flush(), and .stop() methods. Also works as a context manager.
     """
-    from avatar_otel import _registry
-    from avatar_otel.config import AvatarOtelConfig
-    from avatar_otel.exporters.setup import (
+    from video_ai_telemetry import _registry
+    from video_ai_telemetry.config import AvatarOtelConfig
+    from video_ai_telemetry.exporters.setup import (
         create_resource,
         setup_logger_provider,
         setup_meter_provider,
         setup_tracer_provider,
     )
-    from avatar_otel.instrumentation.eventloop import install_eventloop_monitor
-    from avatar_otel.instrumentation.gpu import GPUMonitor
-    from avatar_otel.instrumentation.pytorch import instrument_pytorch
-    from avatar_otel.logging.api import _init_logging
-    from avatar_otel.logging.scrubber import ScrubbingSpanProcessor
-    from avatar_otel.metrics.aggregator import FrameMetricsAggregator
-    from avatar_otel.metrics.av_sync import AVSyncTracker
-    from avatar_otel.metrics.instruments import MetricInstruments
-    from avatar_otel.tracing.pending import PendingSpanProcessor
-    from avatar_otel.tracing.propagation import patch_all
-    from avatar_otel.tracing.sampler import AdaptiveSampler
+    from video_ai_telemetry.instrumentation.eventloop import install_eventloop_monitor
+    from video_ai_telemetry.instrumentation.gpu import GPUMonitor
+    from video_ai_telemetry.instrumentation.pytorch import instrument_pytorch
+    from video_ai_telemetry.logging.api import _init_logging
+    from video_ai_telemetry.logging.scrubber import ScrubbingSpanProcessor
+    from video_ai_telemetry.metrics.aggregator import FrameMetricsAggregator
+    from video_ai_telemetry.metrics.av_sync import AVSyncTracker
+    from video_ai_telemetry.metrics.instruments import MetricInstruments
+    from video_ai_telemetry.tracing.pending import PendingSpanProcessor
+    from video_ai_telemetry.tracing.propagation import patch_all
+    from video_ai_telemetry.tracing.sampler import AdaptiveSampler
 
     config = AvatarOtelConfig(**kwargs)
     _registry._config = config
@@ -146,8 +146,8 @@ def init(**kwargs: Any) -> RTVideoOtelSDK:
     meter_provider = setup_meter_provider(config, resource)
     logger_provider = setup_logger_provider(config, resource)
 
-    tracer = tracer_provider.get_tracer("avatar-otel", __version__)
-    meter = meter_provider.get_meter("avatar-otel", __version__)
+    tracer = tracer_provider.get_tracer("video-ai-telemetry", __version__)
+    meter = meter_provider.get_meter("video-ai-telemetry", __version__)
     _registry._tracer = tracer
     _registry._meter = meter
 
@@ -160,7 +160,7 @@ def init(**kwargs: Any) -> RTVideoOtelSDK:
         )
         tracer_provider.add_span_processor(scrubber)
 
-    from avatar_otel.exporters.setup import _create_span_exporter
+    from video_ai_telemetry.exporters.setup import _create_span_exporter
 
     pending_exporter = _create_span_exporter(config)
     pending_processor = PendingSpanProcessor(

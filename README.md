@@ -1,17 +1,17 @@
-# avatar-otel
+# video-ai-telemetry
 
 OpenTelemetry observability for real-time AI avatar and video pipelines.
 
 ## Features
 
-- **One-liner init** — `avatar_otel.init(service_name="my-pipeline")` wires up traces, metrics, and logs
+- **One-liner init** — `video_ai_telemetry.init(service_name="my-pipeline")` wires up traces, metrics, and logs
 - **Pipeline stage tracing** — `@pipeline_stage` decorator and `stage()` context manager with adaptive sampling
 - **Frame metrics aggregator** — Ring buffer with ~200ns hot-path overhead, daemon flush to OTel
 - **A/V sync tracking** — Drift and jitter measurement with warning callbacks
 - **PyTorch auto-instrumentation** — Two-tier recording (ring buffer always, span on 1% or slow)
 - **GPU monitoring** — NVML-backed utilization, memory, temperature, power gauges
 - **WebRTC transport metrics** — RTT, jitter, packet loss, frame rate from aiortc stats
-- **Structured logging** — `avatar_otel.info("msg", key=value)` with trace context correlation
+- **Structured logging** — `video_ai_telemetry.info("msg", key=value)` with trace context correlation
 - **PII scrubbing** — Span processor redacting sensitive attribute patterns
 - **Context propagation** — ThreadPool/ProcessPool OTel context forwarding
 - **Event loop monitor** — Detects asyncio blocking above threshold
@@ -20,31 +20,31 @@ OpenTelemetry observability for real-time AI avatar and video pipelines.
 ## Quick start
 
 ```bash
-pip install avatar-otel
+pip install video-ai-telemetry
 # With optional extras:
-pip install avatar-otel[pytorch,gpu,webrtc]
+pip install video-ai-telemetry[pytorch,gpu,webrtc]
 # Or everything:
-pip install avatar-otel[all]
+pip install video-ai-telemetry[all]
 ```
 
 ```python
-import avatar_otel
+import video_ai_telemetry
 
 # Initialize — configurable via kwargs or AVATAR_OTEL_* env vars
-with avatar_otel.init(service_name="artalk-avatar") as sdk:
+with video_ai_telemetry.init(service_name="artalk-avatar") as sdk:
 
     # Trace pipeline stages
-    @avatar_otel.pipeline_stage("flame_inference")
+    @video_ai_telemetry.pipeline_stage("flame_inference")
     async def run_flame_model(params):
         return model(params)
 
     # Context manager for ad-hoc stages
-    with avatar_otel.stage("render") as s:
+    with video_ai_telemetry.stage("render") as s:
         s.record("vertex_count", 12345)
         frame = render(mesh)
 
     # Structured logging with trace correlation
-    avatar_otel.info("Frame rendered", fps=30, resolution="1080p")
+    video_ai_telemetry.info("Frame rendered", fps=30, resolution="1080p")
 
     # Frame metrics (hot path)
     sdk.frame_aggregator.record(forward_pass_ms=11.2, render_ms=3.1)
@@ -70,12 +70,12 @@ All settings via `AvatarOtelConfig` (Pydantic Settings):
 | `av_drift_warning_ms` | `AVATAR_OTEL_AV_DRIFT_WARNING_MS` | `40.0` |
 | `pytorch_sample_rate` | `AVATAR_OTEL_PYTORCH_SAMPLE_RATE` | `0.01` |
 
-See `avatar_otel.config.AvatarOtelConfig` for the full list.
+See `video_ai_telemetry.config.AvatarOtelConfig` for the full list.
 
 ## Architecture
 
 ```
-avatar_otel/
+video_ai_telemetry/
 ├── __init__.py              # Public API + init() orchestration
 ├── config.py                # Pydantic Settings model
 ├── conventions/

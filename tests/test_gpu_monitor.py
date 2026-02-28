@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from avatar_otel.instrumentation.gpu import GPUMonitor, GPUReading
+from video_ai_telemetry.instrumentation.gpu import GPUMonitor, GPUReading
 
 
 class TestGPUMonitor:
@@ -32,7 +32,7 @@ class TestGPUMonitor:
         monitor = GPUMonitor()
         monitor.stop()  # Should not raise
 
-    @patch("avatar_otel.instrumentation.gpu.GPUMonitor._poll")
+    @patch("video_ai_telemetry.instrumentation.gpu.GPUMonitor._poll")
     def test_poll_called_on_start(self, mock_poll):
         """Test that with mocked pynvml, start initializes correctly."""
         mock_pynvml = MagicMock()

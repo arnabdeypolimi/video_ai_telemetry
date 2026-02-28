@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from avatar_otel.instrumentation.transport import WebRTCMetricsAdapter
+from video_ai_telemetry.instrumentation.transport import WebRTCMetricsAdapter
 
 
 # ---------------------------------------------------------------------------

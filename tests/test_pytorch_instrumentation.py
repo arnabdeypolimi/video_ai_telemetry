@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from avatar_otel.instrumentation.pytorch import (
+from video_ai_telemetry.instrumentation.pytorch import (
     instrument_pytorch,
     uninstrument_pytorch,
 )
@@ -106,7 +106,7 @@ class TestPyTorchInstrumentation:
                 aggregator=mock_aggregator,
             )
 
-            from avatar_otel.instrumentation import pytorch
+            from video_ai_telemetry.instrumentation import pytorch
 
             pytorch._original_module_call = original_call
 

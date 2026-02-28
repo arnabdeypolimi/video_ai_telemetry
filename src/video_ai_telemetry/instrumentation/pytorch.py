@@ -12,9 +12,9 @@ import random
 import time
 from typing import Any
 
-from avatar_otel.conventions.attributes import InferenceAttributes
+from video_ai_telemetry.conventions.attributes import InferenceAttributes
 
-logger = logging.getLogger("avatar_otel.pytorch")
+logger = logging.getLogger("video_ai_telemetry.pytorch")
 
 _original_module_call = None
 _tracer = None

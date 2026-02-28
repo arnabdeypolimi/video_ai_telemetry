@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from avatar_otel.metrics.aggregator import FrameMetricsAggregator, _RingBuffer
+from video_ai_telemetry.metrics.aggregator import FrameMetricsAggregator, _RingBuffer
 
 
 class TestRingBuffer:

@@ -3,9 +3,9 @@ import asyncio
 import logging
 from typing import Any
 
-from avatar_otel.conventions.attributes import TransportAttributes
+from video_ai_telemetry.conventions.attributes import TransportAttributes
 
-logger = logging.getLogger("avatar_otel.transport")
+logger = logging.getLogger("video_ai_telemetry.transport")
 
 class WebRTCMetricsAdapter:
     def __init__(self, peer_connection: Any, poll_interval_s: float = 2.0, meter: Any = None):

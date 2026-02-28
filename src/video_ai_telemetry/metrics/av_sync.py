@@ -12,8 +12,8 @@ import threading
 import time
 from collections import deque
 
-from avatar_otel.conventions.attributes import AVSyncAttributes
-from avatar_otel.metrics.instruments import MetricInstruments
+from video_ai_telemetry.conventions.attributes import AVSyncAttributes
+from video_ai_telemetry.metrics.instruments import MetricInstruments
 
 
 class AVSyncTracker:
