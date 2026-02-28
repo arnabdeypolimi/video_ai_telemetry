@@ -50,7 +50,7 @@ class AdaptiveSampler:
 
         now = time.monotonic()
         with self._lock:
-            last = self._last_span_time.get(stage_name, 0.0)
+            last = self._last_span_time.get(stage_name, -self._window_s)
             if now - last >= self._window_s:
                 self._last_span_time[stage_name] = now
                 return True
