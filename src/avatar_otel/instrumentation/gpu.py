@@ -1,0 +1,175 @@
+"""GPU hardware monitoring via NVML.
+
+Polls GPU metrics in a daemon thread and exposes them as OTel ObservableGauge
+callbacks. Gracefully degrades if pynvml is unavailable or no NVIDIA GPU.
+"""
+
+from __future__ import annotations
+
+import logging
+import threading
+import time
+from dataclasses import dataclass, field
+from typing import Any
+
+from avatar_otel.conventions.attributes import GPUAttributes
+
+logger = logging.getLogger("avatar_otel.gpu")
+
+
+@dataclass
+class GPUReading:
+    """Snapshot of GPU metrics for a single device."""
+
+    device_index: int = 0
+    utilization_pct: float = 0.0
+    memory_utilization_pct: float = 0.0
+    memory_used_mb: float = 0.0
+    memory_free_mb: float = 0.0
+    memory_total_mb: float = 0.0
+    temperature_c: float = 0.0
+    power_w: float = 0.0
+
+
+class GPUMonitor:
+    """Polls NVML for GPU metrics and caches them for OTel gauge callbacks."""
+
+    def __init__(
+        self,
+        poll_interval_s: float = 1.0,
+        device_indices: list[int] | None = None,
+    ) -> None:
+        self._poll_interval_s = poll_interval_s
+        self._device_indices = device_indices
+        self._readings: list[GPUReading] = []
+        self._lock = threading.Lock()
+        self._stop = threading.Event()
+        self._thread: threading.Thread | None = None
+        self._nvml_available = False
+        self._handles: list[Any] = []
+
+    def start(self) -> bool:
+        """Initialize NVML and start polling. Returns False if unavailable."""
+        try:
+            import pynvml
+
+            pynvml.nvmlInit()
+            self._nvml_available = True
+        except (ImportError, Exception) as exc:
+            logger.debug("GPU monitoring unavailable: %s", exc)
+            return False
+
+        try:
+            device_count = pynvml.nvmlDeviceGetCount()
+        except Exception:
+            logger.debug("Failed to get GPU device count")
+            return False
+
+        indices = self._device_indices or list(range(device_count))
+        self._handles = []
+        for idx in indices:
+            try:
+                handle = pynvml.nvmlDeviceGetHandleByIndex(idx)
+                self._handles.append((idx, handle))
+            except Exception:
+                logger.debug("Failed to get handle for GPU %d", idx)
+
+        if not self._handles:
+            return False
+
+        self._thread = threading.Thread(
+            target=self._poll_loop, daemon=True, name="avatar-otel-gpu"
+        )
+        self._thread.start()
+        return True
+
+    def stop(self) -> None:
+        self._stop.set()
+        if self._thread is not None:
+            self._thread.join(timeout=5.0)
+        if self._nvml_available:
+            try:
+                import pynvml
+
+                pynvml.nvmlShutdown()
+            except Exception:
+                pass
+
+    def get_readings(self) -> list[GPUReading]:
+        with self._lock:
+            return list(self._readings)
+
+    def _poll_loop(self) -> None:
+        while not self._stop.wait(timeout=self._poll_interval_s):
+            self._poll()
+
+    def _poll(self) -> None:
+        import pynvml
+
+        readings = []
+        for idx, handle in self._handles:
+            reading = GPUReading(device_index=idx)
+
+            try:
+                util = pynvml.nvmlDeviceGetUtilizationRates(handle)
+                reading.utilization_pct = float(util.gpu)
+                reading.memory_utilization_pct = float(util.memory)
+            except Exception:
+                pass
+
+            try:
+                mem = pynvml.nvmlDeviceGetMemoryInfo(handle)
+                reading.memory_used_mb = mem.used / (1024 * 1024)
+                reading.memory_free_mb = mem.free / (1024 * 1024)
+                reading.memory_total_mb = mem.total / (1024 * 1024)
+            except Exception:
+                pass
+
+            try:
+                reading.temperature_c = float(
+                    pynvml.nvmlDeviceGetTemperature(
+                        handle, pynvml.NVML_TEMPERATURE_GPU
+                    )
+                )
+            except Exception:
+                pass
+
+            try:
+                reading.power_w = pynvml.nvmlDeviceGetPowerUsage(handle) / 1000.0
+            except Exception:
+                pass
+
+            readings.append(reading)
+
+        with self._lock:
+            self._readings = readings
+
+    def register_gauges(self, meter: Any) -> None:
+        """Register OTel ObservableGauge instruments with callbacks."""
+
+        def _make_callback(attr_name: str):
+            def callback(options):
+                readings = self.get_readings()
+                for r in readings:
+                    yield (
+                        getattr(r, attr_name),
+                        {GPUAttributes.DEVICE_INDEX: r.device_index},
+                    )
+
+            return callback
+
+        gauge_map = {
+            "rt_video.gpu.utilization": "utilization_pct",
+            "rt_video.gpu.memory.utilization": "memory_utilization_pct",
+            "rt_video.gpu.memory.used": "memory_used_mb",
+            "rt_video.gpu.memory.free": "memory_free_mb",
+            "rt_video.gpu.memory.total": "memory_total_mb",
+            "rt_video.gpu.temperature": "temperature_c",
+            "rt_video.gpu.power.draw": "power_w",
+        }
+
+        for metric_name, attr_name in gauge_map.items():
+            meter.create_observable_gauge(
+                name=metric_name,
+                callbacks=[_make_callback(attr_name)],
+            )
