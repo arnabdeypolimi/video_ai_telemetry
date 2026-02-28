@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import asyncio
 import logging
 import time
@@ -7,6 +8,7 @@ logger = logging.getLogger("video_ai_telemetry.eventloop")
 
 _original_handle_run = None
 _warning_callback = None
+
 
 def install_eventloop_monitor(
     threshold_ms: float = 100.0,
@@ -32,11 +34,10 @@ def install_eventloop_monitor(
                         handle_callback=cb_name,
                     )
                 else:
-                    logger.warning(
-                        "Event loop blocked for %.1fms by %s", elapsed_ms, cb_name
-                    )
+                    logger.warning("Event loop blocked for %.1fms by %s", elapsed_ms, cb_name)
 
     asyncio.events.Handle._run = patched_run
+
 
 def uninstall_eventloop_monitor():
     global _original_handle_run, _warning_callback

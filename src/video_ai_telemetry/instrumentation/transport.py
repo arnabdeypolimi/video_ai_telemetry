@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import asyncio
 import logging
 from typing import Any
@@ -6,6 +7,7 @@ from typing import Any
 from video_ai_telemetry.conventions.attributes import TransportAttributes
 
 logger = logging.getLogger("video_ai_telemetry.transport")
+
 
 class WebRTCMetricsAdapter:
     def __init__(self, peer_connection: Any, poll_interval_s: float = 2.0, meter: Any = None):
@@ -20,8 +22,12 @@ class WebRTCMetricsAdapter:
             self._histograms = {
                 "rtt": self._meter.create_histogram("rt_video.transport.rtt", unit="ms"),
                 "jitter": self._meter.create_histogram("rt_video.transport.jitter", unit="ms"),
-                "packet_loss": self._meter.create_histogram("rt_video.transport.packet_loss", unit="%"),
-                "frame_rate": self._meter.create_histogram("rt_video.transport.frame_rate", unit="fps"),
+                "packet_loss": self._meter.create_histogram(
+                    "rt_video.transport.packet_loss", unit="%"
+                ),
+                "frame_rate": self._meter.create_histogram(
+                    "rt_video.transport.frame_rate", unit="fps"
+                ),
                 "bitrate": self._meter.create_histogram("rt_video.transport.bitrate", unit="kbps"),
             }
         self._task = asyncio.ensure_future(self._poll_loop())

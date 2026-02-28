@@ -148,7 +148,7 @@ class TestStageContextManager:
         tracer, exporter, _ = tracing
 
         with pytest.raises(RuntimeError, match="boom"):
-            with stage("explode", tracer=tracer, sampler=always_sampler) as s:
+            with stage("explode", tracer=tracer, sampler=always_sampler):
                 raise RuntimeError("boom")
 
         spans = exporter.get_finished_spans()

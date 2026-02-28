@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import time
-from unittest.mock import patch
 
 from video_ai_telemetry.tracing.sampler import AdaptiveSampler
 

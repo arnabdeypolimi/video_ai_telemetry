@@ -17,7 +17,6 @@ import pytest
 
 from video_ai_telemetry.logging.scrubber import ScrubbingSpanProcessor
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -219,9 +218,7 @@ class TestNonStringAttributes:
 
     def test_mixed_types_only_string_affected(self):
         """Only the string attribute matching a pattern should be redacted."""
-        result = _run_processor(
-            {"frame_count": 42, "password": "secret", "drift_ms": 3.14}
-        )
+        result = _run_processor({"frame_count": 42, "password": "secret", "drift_ms": 3.14})
         assert result["frame_count"] == 42
         assert result["password"] == "[REDACTED]"
         assert result["drift_ms"] == pytest.approx(3.14)

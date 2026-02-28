@@ -114,9 +114,7 @@ def _instrumented_call(module, *args, **kwargs):
         _aggregator.record(forward_pass_ms=elapsed_ms)
 
     # Tier 2: Span creation for sampled or slow calls
-    should_span = (
-        random.random() < _sampler_rate or elapsed_ms > _anomaly_threshold_ms
-    )
+    should_span = random.random() < _sampler_rate or elapsed_ms > _anomaly_threshold_ms
 
     if should_span and _tracer is not None:
         with _tracer.start_as_current_span(f"rt_video.torch.{model_name}") as span:

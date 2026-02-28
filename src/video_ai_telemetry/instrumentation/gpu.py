@@ -8,8 +8,7 @@ from __future__ import annotations
 
 import logging
 import threading
-import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from video_ai_telemetry.conventions.attributes import GPUAttributes
@@ -127,9 +126,7 @@ class GPUMonitor:
 
             try:
                 reading.temperature_c = float(
-                    pynvml.nvmlDeviceGetTemperature(
-                        handle, pynvml.NVML_TEMPERATURE_GPU
-                    )
+                    pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
                 )
             except Exception:
                 pass

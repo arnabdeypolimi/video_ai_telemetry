@@ -9,10 +9,10 @@ import pytest
 
 from video_ai_telemetry.instrumentation.transport import WebRTCMetricsAdapter
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_report(**kwargs):
     """Create a simple namespace-like object mimicking an aiortc RTCStats report."""
@@ -42,6 +42,7 @@ def _make_meter():
 # ---------------------------------------------------------------------------
 # 1. Start / stop lifecycle
 # ---------------------------------------------------------------------------
+
 
 class TestLifecycle:
     @pytest.mark.asyncio
@@ -76,9 +77,7 @@ class TestLifecycle:
         adapter = WebRTCMetricsAdapter(pc, poll_interval_s=100.0, meter=meter)
         adapter.start()
         assert meter.create_histogram.call_count == 5
-        histogram_names = {
-            call.args[0] for call in meter.create_histogram.call_args_list
-        }
+        histogram_names = {call.args[0] for call in meter.create_histogram.call_args_list}
         assert "rt_video.transport.rtt" in histogram_names
         assert "rt_video.transport.jitter" in histogram_names
         assert "rt_video.transport.packet_loss" in histogram_names
@@ -98,6 +97,7 @@ class TestLifecycle:
 # ---------------------------------------------------------------------------
 # 2. Stats parsing from mock reports
 # ---------------------------------------------------------------------------
+
 
 class TestStatsParsing:
     @pytest.mark.asyncio
@@ -270,6 +270,7 @@ class TestStatsParsing:
 # ---------------------------------------------------------------------------
 # 3. Graceful degradation on getStats failure
 # ---------------------------------------------------------------------------
+
 
 class TestGracefulDegradation:
     @pytest.mark.asyncio

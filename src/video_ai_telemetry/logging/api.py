@@ -24,7 +24,7 @@ from typing import TYPE_CHECKING, Any
 
 from opentelemetry import context as otel_context
 from opentelemetry import trace
-from opentelemetry._logs import get_logger_provider, set_logger_provider
+from opentelemetry._logs import set_logger_provider
 from opentelemetry._logs.severity import SeverityNumber
 from opentelemetry.sdk._logs import LoggerProvider
 
@@ -48,7 +48,7 @@ _SEVERITY_MAP: dict[str, tuple[SeverityNumber, str]] = {
     "trace": (SeverityNumber.TRACE, "TRACE"),
     "debug": (SeverityNumber.DEBUG, "DEBUG"),
     "info": (SeverityNumber.INFO, "INFO"),
-    "notice": (SeverityNumber.WARN, "NOTICE"),   # 13 — WARN per spec
+    "notice": (SeverityNumber.WARN, "NOTICE"),  # 13 — WARN per spec
     "warning": (SeverityNumber.WARN, "WARN"),
     "error": (SeverityNumber.ERROR, "ERROR"),
     "exception": (SeverityNumber.ERROR, "ERROR"),
@@ -122,9 +122,7 @@ def _emit(
         # Before init() — silently discard.
         return
 
-    severity_number, severity_text = _SEVERITY_MAP.get(
-        level, (SeverityNumber.INFO, "INFO")
-    )
+    severity_number, severity_text = _SEVERITY_MAP.get(level, (SeverityNumber.INFO, "INFO"))
 
     # Level filtering — drop records below the configured threshold.
     if severity_number.value < _min_severity.value:
@@ -143,9 +141,7 @@ def _emit(
     if exc_info:
         exc_type, exc_value, exc_tb = sys.exc_info()
         if exc_value is not None:
-            log_attrs["exception.type"] = (
-                exc_type.__name__ if exc_type is not None else "unknown"
-            )
+            log_attrs["exception.type"] = exc_type.__name__ if exc_type is not None else "unknown"
             log_attrs["exception.message"] = str(exc_value)
             log_attrs["exception.stacktrace"] = "".join(
                 traceback.format_exception(exc_type, exc_value, exc_tb)
@@ -171,8 +167,7 @@ def _emit(
         trace_hex = format(span_ctx.trace_id, "032x") if span_ctx.is_valid else "0" * 32
         span_hex = format(span_ctx.span_id, "016x") if span_ctx.is_valid else "0" * 16
         print(
-            f"[{severity_text}] {body} "
-            f"(trace={trace_hex[:8]}… span={span_hex[:8]}…)",
+            f"[{severity_text}] {body} (trace={trace_hex[:8]}… span={span_hex[:8]}…)",
             file=sys.stdout,
         )
 

@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import array
 import threading
-import time
 from dataclasses import dataclass, field
 
 from video_ai_telemetry.metrics.instruments import MetricInstruments

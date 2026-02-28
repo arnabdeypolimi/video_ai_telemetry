@@ -1,10 +1,9 @@
 """Tests for event loop blocking monitor."""
+
 from __future__ import annotations
 
 import asyncio
 import time
-
-import pytest
 
 from video_ai_telemetry.instrumentation.eventloop import (
     install_eventloop_monitor,

@@ -12,11 +12,13 @@ picklable, so a picklable wrapper class is used instead.  If pickling still
 fails for any reason the original callable is submitted unchanged and a debug
 message is logged.
 """
+
 from __future__ import annotations
+
 import logging
 import pickle
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-import wrapt
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+
 from opentelemetry import context as otel_context
 
 logger = logging.getLogger("video_ai_telemetry.propagation")
@@ -27,6 +29,7 @@ _original_process_submit = None
 # ---------------------------------------------------------------------------
 # Picklable callable wrapper for ProcessPoolExecutor
 # ---------------------------------------------------------------------------
+
 
 class _ContextWrappedCallable:
     """A picklable wrapper that re-attaches an OTel context before calling fn.
@@ -55,18 +58,21 @@ class _ContextWrappedCallable:
 # ThreadPoolExecutor patch
 # ---------------------------------------------------------------------------
 
+
 def patch_thread_pool_executor():
     global _original_thread_submit
     _original_thread_submit = ThreadPoolExecutor.submit
 
     def patched_submit(self, fn, /, *args, **kwargs):
         current_ctx = otel_context.get_current()
+
         def wrapped_fn(*a, **kw):
             token = otel_context.attach(current_ctx)
             try:
                 return fn(*a, **kw)
             finally:
                 otel_context.detach(token)
+
         return _original_thread_submit(self, wrapped_fn, *args, **kwargs)
 
     ThreadPoolExecutor.submit = patched_submit
@@ -82,6 +88,7 @@ def unpatch_thread_pool_executor():
 # ---------------------------------------------------------------------------
 # ProcessPoolExecutor patch
 # ---------------------------------------------------------------------------
+
 
 def patch_process_pool_executor():
     global _original_process_submit
@@ -113,6 +120,7 @@ def unpatch_process_pool_executor():
 # ---------------------------------------------------------------------------
 # Convenience helpers
 # ---------------------------------------------------------------------------
+
 
 def patch_all():
     patch_thread_pool_executor()

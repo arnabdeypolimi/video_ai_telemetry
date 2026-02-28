@@ -19,23 +19,27 @@ jobs:
         uses: astral-sh/setup-uv@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        run: uv python install ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: uv pip install -e ".[dev]" --python ${{ matrix.python-version }}
+        run: uv pip install -e ".[dev]" --system
 
       - name: Lint
-        run: uv run --python ${{ matrix.python-version }} ruff check src/ tests/
+        run: ruff check src/ tests/
 
       - name: Test
-        run: uv run --python ${{ matrix.python-version }} pytest tests/ -v --tb=short
+        run: pytest tests/ -v --tb=short
 
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
-      - run: uv python install 3.12
-      - run: uv pip install -e ".[dev]" --python 3.12
-      - run: uv run --python 3.12 ruff check src/ tests/
-      - run: uv run --python 3.12 ruff format --check src/ tests/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: uv pip install -e ".[dev]" --system
+      - run: ruff check src/ tests/
+      - run: ruff format --check src/ tests/
