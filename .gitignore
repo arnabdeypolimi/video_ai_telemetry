@@ -1,2 +1,17 @@
 # Claude Code
 .claude/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+*.egg
+
+# OS
+.DS_Store
+
+# Environment
+.env

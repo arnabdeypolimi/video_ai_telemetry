@@ -1,0 +1,59 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "avatar-otel"
+dynamic = ["version"]
+requires-python = ">=3.10"
+description = "OpenTelemetry observability for real-time AI avatar and video pipelines"
+license = { text = "Apache-2.0" }
+
+dependencies = [
+    "opentelemetry-api>=1.24.0",
+    "opentelemetry-sdk>=1.24.0",
+    "opentelemetry-exporter-otlp-proto-http>=1.24.0",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.24.0",
+    "wrapt>=1.16.0",
+    "pydantic>=2.6.0",
+    "pydantic-settings>=2.2.0",
+]
+
+[project.optional-dependencies]
+pytorch = ["torch>=2.0.0"]
+gpu = ["pynvml>=11.5.0"]
+webrtc = ["aiortc>=1.9.0"]
+all = ["avatar-otel[pytorch,gpu,webrtc]"]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-mock>=3.12.0",
+    "pytest-cov>=5.0.0",
+    "ruff>=0.4.0",
+    "mypy>=1.9.0",
+    "pre-commit>=3.7.0",
+]
+
+[tool.uv]
+dev-dependencies = ["avatar-otel[dev,all]"]
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/avatar_otel"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = false
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "--cov=avatar_otel --cov-report=term-missing -q"
