@@ -12,9 +12,9 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-from avatar_otel.conventions.attributes import GPUAttributes
+from video_ai_telemetry.conventions.attributes import GPUAttributes
 
-logger = logging.getLogger("avatar_otel.gpu")
+logger = logging.getLogger("video_ai_telemetry.gpu")
 
 
 @dataclass
@@ -78,7 +78,7 @@ class GPUMonitor:
             return False
 
         self._thread = threading.Thread(
-            target=self._poll_loop, daemon=True, name="avatar-otel-gpu"
+            target=self._poll_loop, daemon=True, name="video-ai-telemetry-gpu"
         )
         self._thread.start()
         return True

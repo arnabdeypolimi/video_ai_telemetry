@@ -1,1 +1,1 @@
-"""Shared test fixtures for avatar-otel."""
+"""Shared test fixtures for video-ai-telemetry."""

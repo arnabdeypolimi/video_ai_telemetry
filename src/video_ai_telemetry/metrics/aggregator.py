@@ -12,7 +12,7 @@ import threading
 import time
 from dataclasses import dataclass, field
 
-from avatar_otel.metrics.instruments import MetricInstruments
+from video_ai_telemetry.metrics.instruments import MetricInstruments
 
 
 @dataclass
@@ -81,7 +81,7 @@ class FrameMetricsAggregator:
         }
 
         self._thread = threading.Thread(
-            target=self._flush_loop, daemon=True, name="avatar-otel-flush"
+            target=self._flush_loop, daemon=True, name="video-ai-telemetry-flush"
         )
 
     def start(self) -> None:

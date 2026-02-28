@@ -13,7 +13,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class AvatarOtelConfig(BaseSettings):
-    """Configuration for avatar-otel SDK."""
+    """Configuration for video-ai-telemetry SDK."""
 
     # ── Identity ──────────────────────────────────────────────────────────
     service_name: str = "avatar-pipeline"

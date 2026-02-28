@@ -1,4 +1,4 @@
-"""Semantic convention string constants for avatar-otel.
+"""Semantic convention string constants for video-ai-telemetry.
 
 All attribute keys live here — zero magic strings in the rest of the codebase.
 """

@@ -1,13 +1,13 @@
-# avatar-otel — Complete Library Plan
+# video-ai-telemetry — Complete Library Plan
 
-**Package:** `avatar-otel` · **Import:** `import avatar_otel` · **Python:** ≥3.10  
+**Package:** `video-ai-telemetry` · **Import:** `import video_ai_telemetry` · **Python:** ≥3.10  
 **License:** Apache-2.0 · **Build:** UV + hatchling · **Config:** Pydantic Settings
 
 ---
 
 ## Overview
 
-`avatar-otel` is an OpenTelemetry-native Python observability library purpose-built for
+`video-ai-telemetry` is an OpenTelemetry-native Python observability library purpose-built for
 real-time AI avatar and video pipelines. It fills the gap left by general-purpose OTel
 libraries (OpenLIT, OpenLLMetry, Logfire) that assume request-response or conversational
 patterns and cannot instrument 30fps continuous video workloads without crippling overhead.
@@ -20,7 +20,7 @@ The library emits standard OTLP traces, metrics, and logs compatible with any OT
 ## Project Structure
 
 ```
-avatar-otel/
+video-ai-telemetry/
 │
 ├── pyproject.toml                  # UV + hatchling, all deps, tool config
 ├── uv.lock                         # Committed lock file
@@ -30,7 +30,7 @@ avatar-otel/
 ├── LICENSE                         # Apache-2.0
 │
 ├── src/
-│   └── avatar_otel/
+│   └── video_ai_telemetry/
 │       │
 │       ├── __init__.py             # Full public API surface
 │       ├── _version.py             # hatch-vcs generated
@@ -52,7 +52,7 @@ avatar-otel/
 │       │
 │       ├── logging/
 │       │   ├── __init__.py
-│       │   ├── api.py              # avatar_otel.info/warning/debug/error/span log API
+│       │   ├── api.py              # video_ai_telemetry.info/warning/debug/error/span log API
 │       │   └── scrubber.py         # PII scrubbing span+log processor
 │       │
 │       ├── instrumentation/
@@ -96,7 +96,7 @@ requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
-name = "avatar-otel"
+name = "video-ai-telemetry"
 dynamic = ["version"]
 requires-python = ">=3.10"
 description = "OpenTelemetry observability for real-time AI avatar and video pipelines"
@@ -117,7 +117,7 @@ dependencies = [
 pytorch = ["torch>=2.0.0"]
 gpu     = ["pynvml>=11.5.0"]
 webrtc  = ["aiortc>=1.9.0"]
-all     = ["avatar-otel[pytorch,gpu,webrtc]"]
+all     = ["video-ai-telemetry[pytorch,gpu,webrtc]"]
 dev     = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
@@ -129,13 +129,13 @@ dev     = [
 ]
 
 [tool.uv]
-dev-dependencies = ["avatar-otel[dev,all]"]
+dev-dependencies = ["video-ai-telemetry[dev,all]"]
 
 [tool.hatch.version]
 source = "vcs"                      # Version from git tags (v0.1.0 → 0.1.0)
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/avatar_otel"]
+packages = ["src/video_ai_telemetry"]
 
 [tool.ruff]
 line-length = 100
@@ -150,7 +150,7 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "--cov=avatar_otel --cov-report=term-missing -q"
+addopts = "--cov=video_ai_telemetry --cov-report=term-missing -q"
 ```
 
 ---
@@ -252,18 +252,18 @@ The core instrumentation primitive. Two interfaces over one implementation.
 
 **Decorator interface:**
 ```python
-@avatar_otel.pipeline_stage("flame_inference")
+@video_ai_telemetry.pipeline_stage("flame_inference")
 async def run_model(audio: torch.Tensor) -> torch.Tensor:
     return model(audio)
 
-@avatar_otel.pipeline_stage("render", always_trace=True)
+@video_ai_telemetry.pipeline_stage("render", always_trace=True)
 def render_frame(mesh) -> bytes:
     return renderer.render(mesh)
 ```
 
 **Context manager interface:**
 ```python
-async with avatar_otel.stage("encode", frame_seq=seq_num) as s:
+async with video_ai_telemetry.stage("encode", frame_seq=seq_num) as s:
     encoded = encoder.encode(frame)
     s.record("bitrate_kbps", encoder.current_bitrate)
     s.set_attribute("codec", "h264")
@@ -392,13 +392,13 @@ _drift_window: deque[float]            # last 30 measurements for jitter
 
 **Minimal usage:**
 ```python
-import avatar_otel
-avatar_otel.init(service_name="artalk-avatar")
+import video_ai_telemetry
+video_ai_telemetry.init(service_name="artalk-avatar")
 ```
 
 **Full usage:**
 ```python
-sdk = avatar_otel.init(
+sdk = video_ai_telemetry.init(
     service_name="artalk-avatar",
     otlp_endpoint="http://otel-collector:4318",
     gpu_monitoring=True,
@@ -444,11 +444,11 @@ sdk = avatar_otel.init(
 **SDK return object — context-manager compatible:**
 ```python
 # As context manager (auto-stop on exit):
-with avatar_otel.init(...) as sdk:
+with video_ai_telemetry.init(...) as sdk:
     run_pipeline()
 
 # As object (manual stop):
-sdk = avatar_otel.init(...)
+sdk = video_ai_telemetry.init(...)
 sdk.av_tracker          # AVSyncTracker
 sdk.frame_aggregator    # FrameMetricsAggregator
 sdk.stop()              # Flush everything + teardown
@@ -542,15 +542,15 @@ class PendingSpanProcessor(SpanProcessor):
 ### 🟠 HIGH: Structured Log API (NEW — from Logfire gap analysis)
 **File:** `logging/api.py`
 
-**Problem:** `avatar-otel` was trace-and-metrics only. Users who want to emit pipeline events (warnings, errors, info about pipeline state) had to use Python's `logging` stdlib separately, losing OTel context propagation and structured attribute extraction.
+**Problem:** `video-ai-telemetry` was trace-and-metrics only. Users who want to emit pipeline events (warnings, errors, info about pipeline state) had to use Python's `logging` stdlib separately, losing OTel context propagation and structured attribute extraction.
 
 **Public API:**
 ```python
-avatar_otel.info("Pipeline started", session_id=session_id, target_fps=30)
-avatar_otel.debug("FLAME params computed", param_count=236, drift_ms=-2.4)
-avatar_otel.warning("A/V drift threshold exceeded", drift_ms=47.3, chunk_id=1024)
-avatar_otel.error("GPU OOM during render", model_name="ARTalk", batch_size=4)
-avatar_otel.exception("Unhandled error in pipeline stage", stage="encode")
+video_ai_telemetry.info("Pipeline started", session_id=session_id, target_fps=30)
+video_ai_telemetry.debug("FLAME params computed", param_count=236, drift_ms=-2.4)
+video_ai_telemetry.warning("A/V drift threshold exceeded", drift_ms=47.3, chunk_id=1024)
+video_ai_telemetry.error("GPU OOM during render", model_name="ARTalk", batch_size=4)
+video_ai_telemetry.exception("Unhandled error in pipeline stage", stage="encode")
 ```
 
 **All kwargs become structured OTel log record attributes** — queryable in any OTel log backend.
@@ -559,7 +559,7 @@ avatar_otel.exception("Unhandled error in pipeline stage", stage="encode")
 ```python
 chunk_id = 42
 drift = 47.3
-avatar_otel.warning("A/V drift exceeded on chunk {chunk_id}", chunk_id=chunk_id, drift_ms=drift)
+video_ai_telemetry.warning("A/V drift exceeded on chunk {chunk_id}", chunk_id=chunk_id, drift_ms=drift)
 # span_name = "A/V drift exceeded on chunk {chunk_id}"  (queryable, consistent)
 # message   = "A/V drift exceeded on chunk 42"           (human-readable)
 # attributes: chunk_id=42, drift_ms=47.3
@@ -567,7 +567,7 @@ avatar_otel.warning("A/V drift exceeded on chunk {chunk_id}", chunk_id=chunk_id,
 
 **Implementation on top of OTel Logs API:**
 - `LoggerProvider` set up during `init()` alongside `TracerProvider` and `MeterProvider`
-- `avatar_otel.info(msg, **attrs)` calls `otel_logger.emit(LogRecord(body=msg, attributes=attrs, severity=INFO))`
+- `video_ai_telemetry.info(msg, **attrs)` calls `otel_logger.emit(LogRecord(body=msg, attributes=attrs, severity=INFO))`
 - Each log record carries the current OTel trace context (`trace_id`, `span_id`) automatically — logs are correlated to the active span without any manual plumbing
 - `log_console=True` (default) also prints to stdout with indentation matching active span depth
 
@@ -661,7 +661,7 @@ def my_callback(key: str, value: str, pattern) -> bool:
         return True   # model names contain "secret" sometimes but aren't PII
     return False
 
-avatar_otel.init(scrubbing_callback=my_callback)
+video_ai_telemetry.init(scrubbing_callback=my_callback)
 ```
 
 **Key design:** Scrubbing happens in `on_end` (after span is complete), not on attribute write. This avoids overhead on the hot path. The span processor runs before the `BatchSpanProcessor` in the chain.
@@ -702,7 +702,7 @@ _lock: threading.Lock               # held for ~50ns (dict lookup + write)
 def install_eventloop_monitor(threshold_ms: float = 100.0):
     """
     Patch asyncio.events.Handle._run to detect event loop blocking.
-    Emits avatar_otel.warning() when a handle blocks longer than threshold_ms.
+    Emits video_ai_telemetry.warning() when a handle blocks longer than threshold_ms.
     """
     import asyncio
     original_run = asyncio.events.Handle._run
@@ -715,7 +715,7 @@ def install_eventloop_monitor(threshold_ms: float = 100.0):
             elapsed_ms = (time.perf_counter() - start) * 1000
             if elapsed_ms > threshold_ms:
                 # Use the structured log API to emit the warning
-                avatar_otel.warning(
+                video_ai_telemetry.warning(
                     "Event loop blocked for {elapsed_ms:.1f}ms",
                     elapsed_ms=elapsed_ms,
                     threshold_ms=threshold_ms,
@@ -734,11 +734,11 @@ def install_eventloop_monitor(threshold_ms: float = 100.0):
 ### 🟡 LOW: WebRTC / Transport Metrics
 **File:** `instrumentation/transport.py`
 
-**Requires:** `avatar-otel[webrtc]` extra. Must be explicitly started — never auto-instruments.
+**Requires:** `video-ai-telemetry[webrtc]` extra. Must be explicitly started — never auto-instruments.
 
 **Usage:**
 ```python
-from avatar_otel.instrumentation.transport import WebRTCMetricsAdapter
+from video_ai_telemetry.instrumentation.transport import WebRTCMetricsAdapter
 adapter = WebRTCMetricsAdapter(peer_connection, poll_interval_s=2.0)
 adapter.start()
 ```
@@ -832,29 +832,29 @@ class EventLoopAttributes:
 ## Public API Surface
 **File:** `__init__.py`
 
-Everything a user needs is importable from `avatar_otel` directly:
+Everything a user needs is importable from `video_ai_telemetry` directly:
 
 ```python
-import avatar_otel
+import video_ai_telemetry
 
 # Init
-sdk = avatar_otel.init(...)
+sdk = video_ai_telemetry.init(...)
 
 # Tracing
-@avatar_otel.pipeline_stage("flame_inference")
+@video_ai_telemetry.pipeline_stage("flame_inference")
 async def run_model(...): ...
 
-async with avatar_otel.stage("render") as s:
+async with video_ai_telemetry.stage("render") as s:
     s.record("vertex_count", 12345)
 
 # Structured logging
-avatar_otel.trace("Trace level message", key=value)
-avatar_otel.debug("Debug message", key=value)
-avatar_otel.info("Info message", key=value)
-avatar_otel.notice("Notice message", key=value)
-avatar_otel.warning("Warning message", key=value)
-avatar_otel.error("Error message", key=value)
-avatar_otel.exception("Exception message")       # captures current exception
+video_ai_telemetry.trace("Trace level message", key=value)
+video_ai_telemetry.debug("Debug message", key=value)
+video_ai_telemetry.info("Info message", key=value)
+video_ai_telemetry.notice("Notice message", key=value)
+video_ai_telemetry.warning("Warning message", key=value)
+video_ai_telemetry.error("Error message", key=value)
+video_ai_telemetry.exception("Exception message")       # captures current exception
 
 # A/V sync
 av = sdk.av_tracker
@@ -877,10 +877,10 @@ sdk.flush()                                      # Force-flush all exporters
 
 ```python
 import torch
-import avatar_otel
+import video_ai_telemetry
 
 # 1. One-liner init — all features enabled by default
-sdk = avatar_otel.init(
+sdk = video_ai_telemetry.init(
     service_name="artalk-avatar",
     otlp_endpoint="http://localhost:4318",
     gpu_monitoring=True,
@@ -894,20 +894,20 @@ artalk = ARTalkModel().cuda()
 flame  = FLAMEDecoder().cuda()
 
 # 3. Structured logging — correlated to active span automatically
-avatar_otel.info("Pipeline initialised", model="artalk", device="cuda:0")
+video_ai_telemetry.info("Pipeline initialised", model="artalk", device="cuda:0")
 
 # 4. Decorator-based pipeline stages
-@avatar_otel.pipeline_stage("audio_ingest")
+@video_ai_telemetry.pipeline_stage("audio_ingest")
 async def ingest_audio(raw: bytes) -> torch.Tensor:
     return torch.frombuffer(raw, dtype=torch.float32).cuda()
 
-@avatar_otel.pipeline_stage("flame_inference")
+@video_ai_telemetry.pipeline_stage("flame_inference")
 async def run_flame(audio: torch.Tensor) -> torch.Tensor:
     return artalk(audio)   # auto-instrumented by pytorch patch
 
-@avatar_otel.pipeline_stage("render")
+@video_ai_telemetry.pipeline_stage("render")
 async def render(params: torch.Tensor) -> bytes:
-    async with avatar_otel.stage("mesh_deform") as s:
+    async with video_ai_telemetry.stage("mesh_deform") as s:
         mesh = flame(params)
         s.record("vertex_count", mesh.vertices.shape[0])
     return renderer.render(mesh)

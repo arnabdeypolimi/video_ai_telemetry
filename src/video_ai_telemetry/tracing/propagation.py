@@ -19,7 +19,7 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 import wrapt
 from opentelemetry import context as otel_context
 
-logger = logging.getLogger("avatar_otel.propagation")
+logger = logging.getLogger("video_ai_telemetry.propagation")
 _original_thread_submit = None
 _original_process_submit = None
 

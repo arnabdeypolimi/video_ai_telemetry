@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from avatar_otel.metrics.av_sync import AVSyncTracker
+from video_ai_telemetry.metrics.av_sync import AVSyncTracker
 
 
 @pytest.fixture

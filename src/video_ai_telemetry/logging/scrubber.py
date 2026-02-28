@@ -1,4 +1,4 @@
-"""Scrubbing SpanProcessor for avatar-otel.
+"""Scrubbing SpanProcessor for video-ai-telemetry.
 
 Scans string-valued span attributes before export and redacts values matching
 sensitive patterns (passwords, tokens, secrets, API keys, credit card numbers,
@@ -6,7 +6,7 @@ email addresses, phone numbers, etc.).
 
 Usage::
 
-    from avatar_otel.logging.scrubber import ScrubbingSpanProcessor
+    from video_ai_telemetry.logging.scrubber import ScrubbingSpanProcessor
 
     processor = ScrubbingSpanProcessor(
         extra_patterns=[r"ssn", r"dob"],

@@ -15,7 +15,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from avatar_otel.logging.scrubber import ScrubbingSpanProcessor
+from video_ai_telemetry.logging.scrubber import ScrubbingSpanProcessor
 
 
 # ---------------------------------------------------------------------------

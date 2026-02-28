@@ -9,8 +9,8 @@ import pytest
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SpanExporter, SpanExportResult
 
-from avatar_otel.conventions.attributes import PipelineAttributes
-from avatar_otel.tracing.pending import PendingSpanProcessor, _make_pending_snapshot
+from video_ai_telemetry.conventions.attributes import PipelineAttributes
+from video_ai_telemetry.tracing.pending import PendingSpanProcessor, _make_pending_snapshot
 
 
 class _CollectingExporter(SpanExporter):

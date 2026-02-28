@@ -1,4 +1,4 @@
-from avatar_otel.conventions.attributes import (
+from video_ai_telemetry.conventions.attributes import (
     AVSyncAttributes,
     AvatarAttributes,
     EventLoopAttributes,

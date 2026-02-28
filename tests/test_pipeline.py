@@ -7,15 +7,15 @@ from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor, SpanExporter, SpanExportResult
 
-from avatar_otel.conventions.attributes import PipelineAttributes
-from avatar_otel.tracing.pipeline import (
+from video_ai_telemetry.conventions.attributes import PipelineAttributes
+from video_ai_telemetry.tracing.pipeline import (
     StageContext,
     _NoOpStageContext,
     async_stage,
     pipeline_stage,
     stage,
 )
-from avatar_otel.tracing.sampler import AdaptiveSampler
+from video_ai_telemetry.tracing.sampler import AdaptiveSampler
 
 
 class _CollectingExporter(SpanExporter):

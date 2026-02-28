@@ -13,7 +13,7 @@ import time
 from opentelemetry.sdk.trace import ReadableSpan, SpanProcessor
 from opentelemetry.sdk.trace.export import SpanExporter
 
-from avatar_otel.conventions.attributes import PipelineAttributes
+from video_ai_telemetry.conventions.attributes import PipelineAttributes
 
 
 def _make_pending_snapshot(span: ReadableSpan, now_ns: int) -> ReadableSpan:

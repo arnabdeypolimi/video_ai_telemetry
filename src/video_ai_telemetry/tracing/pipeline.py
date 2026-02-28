@@ -18,8 +18,8 @@ from typing import Any, Callable, ParamSpec, TypeVar
 from opentelemetry import trace
 from opentelemetry.trace import StatusCode
 
-from avatar_otel.conventions.attributes import PipelineAttributes
-from avatar_otel.tracing.sampler import AdaptiveSampler
+from video_ai_telemetry.conventions.attributes import PipelineAttributes
+from video_ai_telemetry.tracing.sampler import AdaptiveSampler
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -196,15 +196,15 @@ async def async_stage(
 
 
 def _get_default_tracer() -> trace.Tracer:
-    from avatar_otel import _registry
+    from video_ai_telemetry import _registry
 
     if _registry._tracer is not None:
         return _registry._tracer
-    return trace.get_tracer("avatar-otel")
+    return trace.get_tracer("video-ai-telemetry")
 
 
 def _get_default_sampler() -> AdaptiveSampler:
-    from avatar_otel import _registry
+    from video_ai_telemetry import _registry
 
     if hasattr(_registry, "_sampler") and _registry._sampler is not None:
         return _registry._sampler

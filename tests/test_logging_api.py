@@ -11,7 +11,7 @@ Validates:
 
 from __future__ import annotations
 
-import avatar_otel.logging.api as log_api
+import video_ai_telemetry.logging.api as log_api
 import pytest
 from opentelemetry._logs.severity import SeverityNumber
 from opentelemetry.sdk._logs import LoggerProvider
