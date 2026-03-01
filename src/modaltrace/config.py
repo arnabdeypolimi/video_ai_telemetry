@@ -80,6 +80,8 @@ class ModalTraceConfig(BaseSettings):
     @field_validator("ring_buffer_size")
     @classmethod
     def must_be_power_of_two(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError(f"ring_buffer_size must be positive, got {v}")
         if v & (v - 1) != 0:
             raise ValueError(f"ring_buffer_size must be a power of 2, got {v}")
         return v
@@ -89,4 +91,12 @@ class ModalTraceConfig(BaseSettings):
     def must_be_fraction(cls, v: float) -> float:
         if not 0.0 <= v <= 1.0:
             raise ValueError(f"pytorch_sample_rate must be between 0 and 1, got {v}")
+        return v
+
+    @field_validator("log_level")
+    @classmethod
+    def must_be_valid_log_level(cls, v: str) -> str:
+        valid_levels = {"trace", "debug", "info", "warning", "error"}
+        if v.lower() not in valid_levels:
+            raise ValueError(f"log_level must be one of {valid_levels}, got {v!r}")
         return v

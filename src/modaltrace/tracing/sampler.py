@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import threading
 import time
+from collections import OrderedDict
 
 
 class AdaptiveSampler:
@@ -19,10 +20,12 @@ class AdaptiveSampler:
         self,
         window_s: float = 1.0,
         anomaly_threshold_ms: float = 50.0,
+        max_stages: int = 1000,
     ) -> None:
         self._window_s = window_s
         self._anomaly_threshold_ms = anomaly_threshold_ms
-        self._last_span_time: dict[str, float] = {}
+        self._max_stages = max_stages
+        self._last_span_time: OrderedDict[str, float] = OrderedDict()
         self._lock = threading.Lock()
 
     def should_sample(
@@ -53,5 +56,12 @@ class AdaptiveSampler:
             last = self._last_span_time.get(stage_name, -self._window_s)
             if now - last >= self._window_s:
                 self._last_span_time[stage_name] = now
+                # Move to end (most recently used)
+                self._last_span_time.move_to_end(stage_name)
+
+                # Evict oldest entry if dict exceeds max size (LRU policy)
+                if len(self._last_span_time) > self._max_stages:
+                    self._last_span_time.popitem(last=False)
+
                 return True
         return False

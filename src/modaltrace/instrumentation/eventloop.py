@@ -28,7 +28,7 @@ def install_eventloop_monitor(
                 cb_name = getattr(self._callback, "__qualname__", str(self._callback))
                 if _warning_callback:
                     _warning_callback(
-                        f"Event loop blocked for {elapsed_ms:.1f}ms",
+                        "Event loop blocked for {elapsed_ms:.1f}ms by {handle_callback}",
                         elapsed_ms=elapsed_ms,
                         threshold_ms=threshold_ms,
                         handle_callback=cb_name,

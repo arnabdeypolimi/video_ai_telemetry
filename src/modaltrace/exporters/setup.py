@@ -6,7 +6,7 @@ HTTP or gRPC exporters based on ModalTraceConfig.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from opentelemetry import trace
 from opentelemetry.sdk.resources import Resource
@@ -27,12 +27,14 @@ def create_resource(config: ModalTraceConfig) -> Resource:
     )
 
 
-def setup_tracer_provider(config: ModalTraceConfig, resource: Resource) -> TracerProvider:
+def setup_tracer_provider(
+    config: ModalTraceConfig, resource: Resource
+) -> tuple[TracerProvider, Any]:
     provider = TracerProvider(resource=resource)
     exporter = _create_span_exporter(config)
     provider.add_span_processor(BatchSpanProcessor(exporter))
     trace.set_tracer_provider(provider)
-    return provider
+    return provider, exporter
 
 
 def setup_meter_provider(config: ModalTraceConfig, resource: Resource):
@@ -61,7 +63,7 @@ def setup_logger_provider(config: ModalTraceConfig, resource: Resource):
 
 
 def _create_span_exporter(config: ModalTraceConfig):
-    endpoint = str(config.otlp_endpoint)
+    endpoint = str(config.otlp_endpoint).rstrip("/")
     headers = config.otlp_headers
     timeout = config.otlp_timeout_ms // 1000
 
@@ -83,7 +85,7 @@ def _create_span_exporter(config: ModalTraceConfig):
 
 
 def _create_metric_exporter(config: ModalTraceConfig):
-    endpoint = str(config.otlp_endpoint)
+    endpoint = str(config.otlp_endpoint).rstrip("/")
     headers = config.otlp_headers
     timeout = config.otlp_timeout_ms // 1000
 
@@ -105,7 +107,7 @@ def _create_metric_exporter(config: ModalTraceConfig):
 
 
 def _create_log_exporter(config: ModalTraceConfig):
-    endpoint = str(config.otlp_endpoint)
+    endpoint = str(config.otlp_endpoint).rstrip("/")
     headers = config.otlp_headers
     timeout = config.otlp_timeout_ms // 1000
 

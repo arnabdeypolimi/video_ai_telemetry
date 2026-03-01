@@ -99,55 +99,61 @@ def _instrumented_call(module, *args, **kwargs):
             pass
 
     start = time.perf_counter_ns()
+    result = None
+    exception_raised = False
 
     try:
         result = _original_module_call(module, *args, **kwargs)
     except Exception:
+        exception_raised = True
         raise
     finally:
         elapsed_ns = time.perf_counter_ns() - start
+        elapsed_ms = elapsed_ns / 1e6
 
-    elapsed_ms = elapsed_ns / 1e6
+        # Tier 1: Always record to ring buffer (~200ns)
+        if _aggregator is not None:
+            _aggregator.record(forward_pass_ms=elapsed_ms)
 
-    # Tier 1: Always record to ring buffer (~200ns)
-    if _aggregator is not None:
-        _aggregator.record(forward_pass_ms=elapsed_ms)
+        # Tier 2: Span creation for sampled or slow calls
+        should_span = (
+            random.random() < _sampler_rate
+            or elapsed_ms > _anomaly_threshold_ms
+            or exception_raised
+        )
 
-    # Tier 2: Span creation for sampled or slow calls
-    should_span = random.random() < _sampler_rate or elapsed_ms > _anomaly_threshold_ms
+        if should_span and _tracer is not None:
+            with _tracer.start_as_current_span(f"modaltrace.torch.{model_name}") as span:
+                span.set_attribute(InferenceAttributes.MODEL_NAME, model_name)
+                span.set_attribute(InferenceAttributes.FORWARD_PASS_MS, elapsed_ms)
 
-    if should_span and _tracer is not None:
-        with _tracer.start_as_current_span(f"modaltrace.torch.{model_name}") as span:
-            span.set_attribute(InferenceAttributes.MODEL_NAME, model_name)
-            span.set_attribute(InferenceAttributes.FORWARD_PASS_MS, elapsed_ms)
-
-            # Device info
-            try:
-                params = list(module.parameters())
-                if params:
-                    device = str(params[0].device)
-                    span.set_attribute(InferenceAttributes.DEVICE, device)
-            except Exception:
-                pass
-
-            # Memory delta
-            if mem_before is not None:
+                # Device info
                 try:
-                    mem_after = torch.cuda.memory_allocated() / (1024 * 1024)
-                    span.set_attribute(InferenceAttributes.GPU_MEMORY_MB, mem_after)
-                    span.set_attribute(
-                        InferenceAttributes.GPU_MEMORY_DELTA_MB, mem_after - mem_before
-                    )
+                    params = list(module.parameters())
+                    if params:
+                        device = str(params[0].device)
+                        span.set_attribute(InferenceAttributes.DEVICE, device)
                 except Exception:
                     pass
 
-            # Shape capture (off by default — PII risk)
-            if _track_shapes:
-                shapes = []
-                for arg in args:
-                    if isinstance(arg, torch.Tensor):
-                        shapes.append(str(list(arg.shape)))
-                if shapes:
-                    span.set_attribute(InferenceAttributes.INPUT_SHAPES, str(shapes))
+                # Memory delta
+                if mem_before is not None:
+                    try:
+                        mem_after = torch.cuda.memory_allocated() / (1024 * 1024)
+                        span.set_attribute(InferenceAttributes.GPU_MEMORY_MB, mem_after)
+                        span.set_attribute(
+                            InferenceAttributes.GPU_MEMORY_DELTA_MB, mem_after - mem_before
+                        )
+                    except Exception:
+                        pass
+
+                # Shape capture (off by default — PII risk)
+                if _track_shapes:
+                    shapes = []
+                    for arg in args:
+                        if isinstance(arg, torch.Tensor):
+                            shapes.append(str(list(arg.shape)))
+                    if shapes:
+                        span.set_attribute(InferenceAttributes.INPUT_SHAPES, str(shapes))
 
     return result

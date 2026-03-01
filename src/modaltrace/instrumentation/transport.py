@@ -32,7 +32,14 @@ class WebRTCMetricsAdapter:
                     "modaltrace.transport.bitrate", unit="kbps"
                 ),
             }
-        self._task = asyncio.ensure_future(self._poll_loop())
+        try:
+            self._task = asyncio.ensure_future(self._poll_loop())
+        except RuntimeError as e:
+            logger.warning(
+                "Failed to start WebRTC metrics adapter: %s. "
+                "start() must be called from within a running event loop.",
+                e,
+            )
 
     async def stop(self):
         if self._task:

@@ -65,14 +65,13 @@ class AVSyncTracker:
         now_ns = time.time_ns()
         with self._lock:
             entry = self._pending.pop(chunk_id, None)
+            if entry is None:
+                return None
 
-        if entry is None:
-            return None
-
-        capture_ns, _ = entry
-        drift_ms = (now_ns - capture_ns) / 1e6
-        self._last_drift_ms = drift_ms
-        self._drift_window.append(drift_ms)
+            capture_ns, _ = entry
+            drift_ms = (now_ns - capture_ns) / 1e6
+            self._last_drift_ms = drift_ms
+            self._drift_window.append(drift_ms)
 
         # Record metrics
         self._instruments.av_sync_drift.record(drift_ms)

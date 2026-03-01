@@ -7,6 +7,7 @@ distinguish pending snapshots from completed spans.
 
 from __future__ import annotations
 
+import logging
 import threading
 import time
 
@@ -14,6 +15,8 @@ from opentelemetry.sdk.trace import ReadableSpan, SpanProcessor
 from opentelemetry.sdk.trace.export import SpanExporter
 
 from modaltrace.conventions.attributes import PipelineAttributes
+
+logger = logging.getLogger("modaltrace.pending")
 
 
 def _make_pending_snapshot(span: ReadableSpan, now_ns: int) -> ReadableSpan:
@@ -109,7 +112,10 @@ class PendingSpanProcessor(SpanProcessor):
     def _flush_loop(self) -> None:
         """Background loop: wait for interval then export pending snapshots."""
         while not self._stop.wait(timeout=self._interval_s):
-            self._export_pending()
+            try:
+                self._export_pending()
+            except Exception as exc:
+                logger.exception("Failed to export pending spans: %s", exc)
 
     def _export_pending(self) -> None:
         """Take a snapshot of all open spans and export them."""
@@ -121,4 +127,7 @@ class PendingSpanProcessor(SpanProcessor):
 
         now_ns = time.time_ns()
         snapshots = [_make_pending_snapshot(span, now_ns) for span in open_spans]
-        self._exporter.export(snapshots)
+        try:
+            self._exporter.export(snapshots)
+        except Exception as exc:
+            logger.exception("Pending span exporter failed: %s", exc)
