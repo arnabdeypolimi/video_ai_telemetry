@@ -36,14 +36,6 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: System :: Monitoring",
 ]
-
-[project.urls]
-"Homepage" = "https://github.com/arnabdeypolimi/video_ai_telemetry"
-"Documentation" = "https://github.com/arnabdeypolimi/video_ai_telemetry/wiki"
-"Repository" = "https://github.com/arnabdeypolimi/video_ai_telemetry.git"
-"Bug Tracker" = "https://github.com/arnabdeypolimi/video_ai_telemetry/issues"
-"Changelog" = "https://github.com/arnabdeypolimi/video_ai_telemetry/releases"
-
 dependencies = [
     "opentelemetry-api>=1.24.0",
     "opentelemetry-sdk>=1.24.0",
@@ -68,6 +60,13 @@ dev = [
     "mypy>=1.9.0",
     "pre-commit>=3.7.0",
 ]
+
+[project.urls]
+"Homepage" = "https://github.com/arnabdeypolimi/video_ai_telemetry"
+"Documentation" = "https://github.com/arnabdeypolimi/video_ai_telemetry/wiki"
+"Repository" = "https://github.com/arnabdeypolimi/video_ai_telemetry.git"
+"Bug Tracker" = "https://github.com/arnabdeypolimi/video_ai_telemetry/issues"
+"Changelog" = "https://github.com/arnabdeypolimi/video_ai_telemetry/releases"
 
 [dependency-groups]
 dev = ["modaltrace[dev,all]"]
