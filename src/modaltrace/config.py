@@ -98,7 +98,5 @@ class ModalTraceConfig(BaseSettings):
     def must_be_valid_log_level(cls, v: str) -> str:
         valid_levels = {"trace", "debug", "info", "warning", "error"}
         if v.lower() not in valid_levels:
-            raise ValueError(
-                f"log_level must be one of {valid_levels}, got {v!r}"
-            )
+            raise ValueError(f"log_level must be one of {valid_levels}, got {v!r}")
         return v
