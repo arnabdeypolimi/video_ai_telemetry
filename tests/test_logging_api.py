@@ -16,7 +16,7 @@ from opentelemetry._logs.severity import SeverityNumber
 from opentelemetry.sdk._logs import LoggerProvider
 from opentelemetry.sdk._logs.export import InMemoryLogRecordExporter, SimpleLogRecordProcessor
 
-import video_ai_telemetry.logging.api as log_api
+import modaltrace.logging.api as log_api
 
 # ---------------------------------------------------------------------------
 # Helpers

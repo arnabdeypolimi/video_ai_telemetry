@@ -1,1 +1,1 @@
-"""Shared test fixtures for video-ai-telemetry."""
+"""Shared test fixtures for modaltrace."""

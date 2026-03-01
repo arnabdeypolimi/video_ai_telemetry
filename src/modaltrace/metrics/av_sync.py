@@ -12,8 +12,8 @@ import threading
 import time
 from collections import deque
 
-from video_ai_telemetry.conventions.attributes import AVSyncAttributes
-from video_ai_telemetry.metrics.instruments import MetricInstruments
+from modaltrace.conventions.attributes import AVSyncAttributes
+from modaltrace.metrics.instruments import MetricInstruments
 
 
 class AVSyncTracker:

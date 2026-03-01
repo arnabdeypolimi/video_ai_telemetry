@@ -11,9 +11,9 @@ import threading
 from dataclasses import dataclass
 from typing import Any
 
-from video_ai_telemetry.conventions.attributes import GPUAttributes
+from modaltrace.conventions.attributes import GPUAttributes
 
-logger = logging.getLogger("video_ai_telemetry.gpu")
+logger = logging.getLogger("modaltrace.gpu")
 
 
 @dataclass
@@ -76,9 +76,7 @@ class GPUMonitor:
         if not self._handles:
             return False
 
-        self._thread = threading.Thread(
-            target=self._poll_loop, daemon=True, name="video-ai-telemetry-gpu"
-        )
+        self._thread = threading.Thread(target=self._poll_loop, daemon=True, name="modaltrace-gpu")
         self._thread.start()
         return True
 
@@ -156,13 +154,13 @@ class GPUMonitor:
             return callback
 
         gauge_map = {
-            "rt_video.gpu.utilization": "utilization_pct",
-            "rt_video.gpu.memory.utilization": "memory_utilization_pct",
-            "rt_video.gpu.memory.used": "memory_used_mb",
-            "rt_video.gpu.memory.free": "memory_free_mb",
-            "rt_video.gpu.memory.total": "memory_total_mb",
-            "rt_video.gpu.temperature": "temperature_c",
-            "rt_video.gpu.power.draw": "power_w",
+            "modaltrace.gpu.utilization": "utilization_pct",
+            "modaltrace.gpu.memory.utilization": "memory_utilization_pct",
+            "modaltrace.gpu.memory.used": "memory_used_mb",
+            "modaltrace.gpu.memory.free": "memory_free_mb",
+            "modaltrace.gpu.memory.total": "memory_total_mb",
+            "modaltrace.gpu.temperature": "temperature_c",
+            "modaltrace.gpu.power.draw": "power_w",
         }
 
         for metric_name, attr_name in gauge_map.items():

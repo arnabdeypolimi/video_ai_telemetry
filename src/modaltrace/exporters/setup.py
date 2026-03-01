@@ -1,7 +1,7 @@
 """OTLP exporter and provider setup.
 
 Configures TracerProvider, MeterProvider, and LoggerProvider with OTLP
-HTTP or gRPC exporters based on AvatarOtelConfig.
+HTTP or gRPC exporters based on ModalTraceConfig.
 """
 
 from __future__ import annotations
@@ -14,10 +14,10 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 if TYPE_CHECKING:
-    from video_ai_telemetry.config import AvatarOtelConfig
+    from modaltrace.config import ModalTraceConfig
 
 
-def create_resource(config: AvatarOtelConfig) -> Resource:
+def create_resource(config: ModalTraceConfig) -> Resource:
     return Resource.create(
         {
             "service.name": config.service_name,
@@ -27,7 +27,7 @@ def create_resource(config: AvatarOtelConfig) -> Resource:
     )
 
 
-def setup_tracer_provider(config: AvatarOtelConfig, resource: Resource) -> TracerProvider:
+def setup_tracer_provider(config: ModalTraceConfig, resource: Resource) -> TracerProvider:
     provider = TracerProvider(resource=resource)
     exporter = _create_span_exporter(config)
     provider.add_span_processor(BatchSpanProcessor(exporter))
@@ -35,7 +35,7 @@ def setup_tracer_provider(config: AvatarOtelConfig, resource: Resource) -> Trace
     return provider
 
 
-def setup_meter_provider(config: AvatarOtelConfig, resource: Resource):
+def setup_meter_provider(config: ModalTraceConfig, resource: Resource):
     from opentelemetry import metrics
     from opentelemetry.sdk.metrics import MeterProvider
     from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
@@ -50,7 +50,7 @@ def setup_meter_provider(config: AvatarOtelConfig, resource: Resource):
     return provider
 
 
-def setup_logger_provider(config: AvatarOtelConfig, resource: Resource):
+def setup_logger_provider(config: ModalTraceConfig, resource: Resource):
     from opentelemetry.sdk._logs import LoggerProvider
     from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 
@@ -60,7 +60,7 @@ def setup_logger_provider(config: AvatarOtelConfig, resource: Resource):
     return provider
 
 
-def _create_span_exporter(config: AvatarOtelConfig):
+def _create_span_exporter(config: ModalTraceConfig):
     endpoint = str(config.otlp_endpoint)
     headers = config.otlp_headers
     timeout = config.otlp_timeout_ms // 1000
@@ -82,7 +82,7 @@ def _create_span_exporter(config: AvatarOtelConfig):
     )
 
 
-def _create_metric_exporter(config: AvatarOtelConfig):
+def _create_metric_exporter(config: ModalTraceConfig):
     endpoint = str(config.otlp_endpoint)
     headers = config.otlp_headers
     timeout = config.otlp_timeout_ms // 1000
@@ -104,7 +104,7 @@ def _create_metric_exporter(config: AvatarOtelConfig):
     )
 
 
-def _create_log_exporter(config: AvatarOtelConfig):
+def _create_log_exporter(config: ModalTraceConfig):
     endpoint = str(config.otlp_endpoint)
     headers = config.otlp_headers
     timeout = config.otlp_timeout_ms // 1000

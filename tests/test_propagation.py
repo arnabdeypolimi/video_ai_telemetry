@@ -9,7 +9,7 @@ from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor, SpanExporter, SpanExportResult
 
-from video_ai_telemetry.tracing.propagation import (
+from modaltrace.tracing.propagation import (
     patch_all,
     patch_process_pool_executor,
     patch_thread_pool_executor,

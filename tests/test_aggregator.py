@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from video_ai_telemetry.metrics.aggregator import FrameMetricsAggregator, _RingBuffer
+from modaltrace.metrics.aggregator import FrameMetricsAggregator, _RingBuffer
 
 
 class TestRingBuffer:

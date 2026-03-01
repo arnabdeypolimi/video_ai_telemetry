@@ -11,7 +11,7 @@ import array
 import threading
 from dataclasses import dataclass, field
 
-from video_ai_telemetry.metrics.instruments import MetricInstruments
+from modaltrace.metrics.instruments import MetricInstruments
 
 
 @dataclass
@@ -80,7 +80,7 @@ class FrameMetricsAggregator:
         }
 
         self._thread = threading.Thread(
-            target=self._flush_loop, daemon=True, name="video-ai-telemetry-flush"
+            target=self._flush_loop, daemon=True, name="modaltrace-flush"
         )
 
     def start(self) -> None:

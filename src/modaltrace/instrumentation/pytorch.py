@@ -12,9 +12,9 @@ import random
 import time
 from typing import Any
 
-from video_ai_telemetry.conventions.attributes import InferenceAttributes
+from modaltrace.conventions.attributes import InferenceAttributes
 
-logger = logging.getLogger("video_ai_telemetry.pytorch")
+logger = logging.getLogger("modaltrace.pytorch")
 
 _original_module_call = None
 _tracer = None
@@ -117,7 +117,7 @@ def _instrumented_call(module, *args, **kwargs):
     should_span = random.random() < _sampler_rate or elapsed_ms > _anomaly_threshold_ms
 
     if should_span and _tracer is not None:
-        with _tracer.start_as_current_span(f"rt_video.torch.{model_name}") as span:
+        with _tracer.start_as_current_span(f"modaltrace.torch.{model_name}") as span:
             span.set_attribute(InferenceAttributes.MODEL_NAME, model_name)
             span.set_attribute(InferenceAttributes.FORWARD_PASS_MS, elapsed_ms)
 

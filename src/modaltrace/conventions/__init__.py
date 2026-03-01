@@ -1,9 +1,9 @@
-from video_ai_telemetry.conventions.attributes import (
-    AvatarAttributes,
+from modaltrace.conventions.attributes import (
     AVSyncAttributes,
     EventLoopAttributes,
     GPUAttributes,
     InferenceAttributes,
+    ModalAttributes,
     PipelineAttributes,
     TransportAttributes,
 )
@@ -11,7 +11,7 @@ from video_ai_telemetry.conventions.attributes import (
 __all__ = [
     "PipelineAttributes",
     "InferenceAttributes",
-    "AvatarAttributes",
+    "ModalAttributes",
     "AVSyncAttributes",
     "GPUAttributes",
     "TransportAttributes",

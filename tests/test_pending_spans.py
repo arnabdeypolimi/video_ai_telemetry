@@ -9,8 +9,8 @@ import pytest
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SpanExporter, SpanExportResult
 
-from video_ai_telemetry.conventions.attributes import PipelineAttributes
-from video_ai_telemetry.tracing.pending import PendingSpanProcessor, _make_pending_snapshot
+from modaltrace.conventions.attributes import PipelineAttributes
+from modaltrace.tracing.pending import PendingSpanProcessor, _make_pending_snapshot
 
 
 class _CollectingExporter(SpanExporter):
@@ -102,7 +102,7 @@ class TestPendingSnapshot:
     """Test that _make_pending_snapshot produces correct snapshots."""
 
     def test_snapshot_has_pending_attribute(self, tracer, provider, exporter):
-        """Snapshot must have rt_video.span.pending = True."""
+        """Snapshot must have modaltrace.span.pending = True."""
 
         captured = []
 

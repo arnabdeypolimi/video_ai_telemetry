@@ -17,8 +17,8 @@ from typing import Any, ParamSpec, TypeVar
 from opentelemetry import trace
 from opentelemetry.trace import StatusCode
 
-from video_ai_telemetry.conventions.attributes import PipelineAttributes
-from video_ai_telemetry.tracing.sampler import AdaptiveSampler
+from modaltrace.conventions.attributes import PipelineAttributes
+from modaltrace.tracing.sampler import AdaptiveSampler
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -82,7 +82,7 @@ def pipeline_stage(
                 if not _sampler.should_sample(stage_name, always_trace=always_trace):
                     return await fn(*args, **kwargs)
 
-                with _tracer.start_as_current_span(f"rt_video.{stage_name}") as span:
+                with _tracer.start_as_current_span(f"modaltrace.{stage_name}") as span:
                     span.set_attribute(PipelineAttributes.STAGE_NAME, stage_name)
                     start = time.perf_counter()
                     try:
@@ -107,7 +107,7 @@ def pipeline_stage(
                 if not _sampler.should_sample(stage_name, always_trace=always_trace):
                     return fn(*args, **kwargs)
 
-                with _tracer.start_as_current_span(f"rt_video.{stage_name}") as span:
+                with _tracer.start_as_current_span(f"modaltrace.{stage_name}") as span:
                     span.set_attribute(PipelineAttributes.STAGE_NAME, stage_name)
                     start = time.perf_counter()
                     try:
@@ -143,7 +143,7 @@ def stage(
         yield _NoOpStageContext()
         return
 
-    with _tracer.start_as_current_span(f"rt_video.{stage_name}") as span:
+    with _tracer.start_as_current_span(f"modaltrace.{stage_name}") as span:
         span.set_attribute(PipelineAttributes.STAGE_NAME, stage_name)
         for key, value in attrs.items():
             span.set_attribute(key, value)
@@ -177,7 +177,7 @@ async def async_stage(
         yield _NoOpStageContext()
         return
 
-    with _tracer.start_as_current_span(f"rt_video.{stage_name}") as span:
+    with _tracer.start_as_current_span(f"modaltrace.{stage_name}") as span:
         span.set_attribute(PipelineAttributes.STAGE_NAME, stage_name)
         for key, value in attrs.items():
             span.set_attribute(key, value)
@@ -195,15 +195,15 @@ async def async_stage(
 
 
 def _get_default_tracer() -> trace.Tracer:
-    from video_ai_telemetry import _registry
+    from modaltrace import _registry
 
     if _registry._tracer is not None:
         return _registry._tracer
-    return trace.get_tracer("video-ai-telemetry")
+    return trace.get_tracer("modaltrace")
 
 
 def _get_default_sampler() -> AdaptiveSampler:
-    from video_ai_telemetry import _registry
+    from modaltrace import _registry
 
     if hasattr(_registry, "_sampler") and _registry._sampler is not None:
         return _registry._sampler

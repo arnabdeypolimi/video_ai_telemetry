@@ -1,13 +1,13 @@
-# video-ai-telemetry — Complete Library Plan
+# modaltrace — Complete Library Plan
 
-**Package:** `video-ai-telemetry` · **Import:** `import video_ai_telemetry` · **Python:** ≥3.10  
+**Package:** `modaltrace` · **Import:** `import modaltrace` · **Python:** ≥3.10  
 **License:** Apache-2.0 · **Build:** UV + hatchling · **Config:** Pydantic Settings
 
 ---
 
 ## Overview
 
-`video-ai-telemetry` is an OpenTelemetry-native Python observability library purpose-built for
+`modaltrace` is an OpenTelemetry-native Python observability library purpose-built for
 real-time AI avatar and video pipelines. It fills the gap left by general-purpose OTel
 libraries (OpenLIT, OpenLLMetry, Logfire) that assume request-response or conversational
 patterns and cannot instrument 30fps continuous video workloads without crippling overhead.
@@ -20,7 +20,7 @@ The library emits standard OTLP traces, metrics, and logs compatible with any OT
 ## Project Structure
 
 ```
-video-ai-telemetry/
+modaltrace/
 │
 ├── pyproject.toml                  # UV + hatchling, all deps, tool config
 ├── uv.lock                         # Committed lock file
@@ -30,7 +30,7 @@ video-ai-telemetry/
 ├── LICENSE                         # Apache-2.0
 │
 ├── src/
-│   └── video_ai_telemetry/
+│   └── modaltrace/
 │       │
 │       ├── __init__.py             # Full public API surface
 │       ├── _version.py             # hatch-vcs generated
@@ -52,7 +52,7 @@ video-ai-telemetry/
 │       │
 │       ├── logging/
 │       │   ├── __init__.py
-│       │   ├── api.py              # video_ai_telemetry.info/warning/debug/error/span log API
+│       │   ├── api.py              # modaltrace.info/warning/debug/error/span log API
 │       │   └── scrubber.py         # PII scrubbing span+log processor
 │       │
 │       ├── instrumentation/
@@ -96,7 +96,7 @@ requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
-name = "video-ai-telemetry"
+name = "modaltrace"
 dynamic = ["version"]
 requires-python = ">=3.10"
 description = "OpenTelemetry observability for real-time AI avatar and video pipelines"
@@ -117,7 +117,7 @@ dependencies = [
 pytorch = ["torch>=2.0.0"]
 gpu     = ["pynvml>=11.5.0"]
 webrtc  = ["aiortc>=1.9.0"]
-all     = ["video-ai-telemetry[pytorch,gpu,webrtc]"]
+all     = ["modaltrace[pytorch,gpu,webrtc]"]
 dev     = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
@@ -129,13 +129,13 @@ dev     = [
 ]
 
 [tool.uv]
-dev-dependencies = ["video-ai-telemetry[dev,all]"]
+dev-dependencies = ["modaltrace[dev,all]"]
 
 [tool.hatch.version]
 source = "vcs"                      # Version from git tags (v0.1.0 → 0.1.0)
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/video_ai_telemetry"]
+packages = ["src/modaltrace"]
 
 [tool.ruff]
 line-length = 100
@@ -150,7 +150,7 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "--cov=video_ai_telemetry --cov-report=term-missing -q"
+addopts = "--cov=modaltrace --cov-report=term-missing -q"
 ```
 
 ---
@@ -158,13 +158,13 @@ addopts = "--cov=video_ai_telemetry --cov-report=term-missing -q"
 ## `config.py` — Pydantic Settings Model
 
 Single source of truth for all configuration. Every component reads from this model.
-Users can configure via Python kwargs, environment variables (`AVATAR_OTEL_*`), or `.env`.
+Users can configure via Python kwargs, environment variables (`MODALTRACE_*`), or `.env`.
 
 ```python
-class AvatarOtelConfig(BaseSettings):
+class ModalTraceConfig(BaseSettings):
 
     # ── Identity ──────────────────────────────────────────────────────────
-    service_name:               str     = "avatar-pipeline"
+    service_name:               str     = "modaltrace-pipeline"
     service_version:            str     = "0.0.0"
     deployment_environment:     str     = "development"
 
@@ -219,7 +219,7 @@ class AvatarOtelConfig(BaseSettings):
     eventloop_lag_threshold_ms: float   = 100.0     # Warn above this block time
 
     model_config = SettingsConfigDict(
-        env_prefix="AVATAR_OTEL_",
+        env_prefix="MODALTRACE_",
         env_file=".env",
         env_file_encoding="utf-8",
     )
@@ -252,18 +252,18 @@ The core instrumentation primitive. Two interfaces over one implementation.
 
 **Decorator interface:**
 ```python
-@video_ai_telemetry.pipeline_stage("flame_inference")
+@modaltrace.pipeline_stage("flame_inference")
 async def run_model(audio: torch.Tensor) -> torch.Tensor:
     return model(audio)
 
-@video_ai_telemetry.pipeline_stage("render", always_trace=True)
+@modaltrace.pipeline_stage("render", always_trace=True)
 def render_frame(mesh) -> bytes:
     return renderer.render(mesh)
 ```
 
 **Context manager interface:**
 ```python
-async with video_ai_telemetry.stage("encode", frame_seq=seq_num) as s:
+async with modaltrace.stage("encode", frame_seq=seq_num) as s:
     encoded = encoder.encode(frame)
     s.record("bitrate_kbps", encoder.current_bitrate)
     s.set_attribute("codec", "h264")
@@ -279,13 +279,13 @@ async with video_ai_telemetry.stage("encode", frame_seq=seq_num) as s:
 
 **Span hierarchy:**
 ```
-rt_video.session              ← root, created at init(), long-lived
-  └── rt_video.iteration      ← one per sampler window (~1/sec at 30fps)
-        ├── rt_video.audio_ingest
-        ├── rt_video.flame_inference
-        │     └── rt_video.torch.ARTalkModel   ← from pytorch auto-instrumentation
-        ├── rt_video.render
-        └── rt_video.encode
+modaltrace.session              ← root, created at init(), long-lived
+  └── modaltrace.iteration      ← one per sampler window (~1/sec at 30fps)
+        ├── modaltrace.audio_ingest
+        ├── modaltrace.flame_inference
+        │     └── modaltrace.torch.ARTalkModel   ← from pytorch auto-instrumentation
+        ├── modaltrace.render
+        └── modaltrace.encode
 ```
 
 ---
@@ -317,15 +317,15 @@ Flush thread (daemon, every 1s):
 
 | Metric | Unit | Bucket boundaries |
 |---|---|---|
-| `rt_video.inference.forward_pass.duration` | ms | 0.5, 1, 2, 5, 10, 20, 50, 100, 200 |
-| `rt_video.render.frame.duration` | ms | 1, 2, 3, 5, 8, 10, 15, 20, 33, 50 |
-| `rt_video.encode.frame.duration` | ms | 0.5, 1, 2, 5, 10, 20, 50 |
-| `rt_video.audio.chunk.duration` | ms | 1, 2, 5, 10, 20, 50 |
-| `rt_video.av_sync.drift` | ms | -200..200 (signed, custom) |
-| `rt_video.av_sync.jitter` | ms | 0, 1, 2, 5, 10, 20, 50 |
-| `rt_video.pipeline.stage.duration` | ms | 1, 2, 5, 10, 20, 33, 50, 100 |
-| `rt_video.frames.processed` | frames | Counter (no buckets) |
-| `rt_video.frames.dropped` | frames | Counter (no buckets) |
+| `modaltrace.inference.forward_pass.duration` | ms | 0.5, 1, 2, 5, 10, 20, 50, 100, 200 |
+| `modaltrace.render.frame.duration` | ms | 1, 2, 3, 5, 8, 10, 15, 20, 33, 50 |
+| `modaltrace.encode.frame.duration` | ms | 0.5, 1, 2, 5, 10, 20, 50 |
+| `modaltrace.audio.chunk.duration` | ms | 1, 2, 5, 10, 20, 50 |
+| `modaltrace.av_sync.drift` | ms | -200..200 (signed, custom) |
+| `modaltrace.av_sync.jitter` | ms | 0, 1, 2, 5, 10, 20, 50 |
+| `modaltrace.pipeline.stage.duration` | ms | 1, 2, 5, 10, 20, 33, 50, 100 |
+| `modaltrace.frames.processed` | frames | Counter (no buckets) |
+| `modaltrace.frames.dropped` | frames | Counter (no buckets) |
 
 **All instruments pre-allocated in `instruments.py` at `init()` time.** Never created inside loops.
 
@@ -381,9 +381,9 @@ _drift_window: deque[float]            # last 30 measurements for jitter
 
 **Jitter formula:** Mean Absolute Deviation of rolling window — more robust than stddev for real-time signals, more intuitive to interpret ("drift varies by ±X ms on average").
 
-**TTL expiry:** Chunks without a matching frame are cleaned up after `av_chunk_ttl_s` (default 5s). Expired chunks increment `rt_video.av_sync.unmatched_chunks` counter.
+**TTL expiry:** Chunks without a matching frame are cleaned up after `av_chunk_ttl_s` (default 5s). Expired chunks increment `modaltrace.av_sync.unmatched_chunks` counter.
 
-**Warning emission:** When `abs(drift_ms) > av_drift_warning_ms`, emit a structured OTel log event with `rt_video.av_sync.drift_ms` and `rt_video.chunk_id` attributes. Surfaces in any OTel log backend.
+**Warning emission:** When `abs(drift_ms) > av_drift_warning_ms`, emit a structured OTel log event with `modaltrace.av_sync.drift_ms` and `modaltrace.chunk_id` attributes. Surfaces in any OTel log backend.
 
 ---
 
@@ -392,13 +392,13 @@ _drift_window: deque[float]            # last 30 measurements for jitter
 
 **Minimal usage:**
 ```python
-import video_ai_telemetry
-video_ai_telemetry.init(service_name="artalk-avatar")
+import modaltrace
+modaltrace.init(service_name="artalk-avatar")
 ```
 
 **Full usage:**
 ```python
-sdk = video_ai_telemetry.init(
+sdk = modaltrace.init(
     service_name="artalk-avatar",
     otlp_endpoint="http://otel-collector:4318",
     gpu_monitoring=True,
@@ -411,7 +411,7 @@ sdk = video_ai_telemetry.init(
 
 **`init()` execution order:**
 ```
-1.  Parse AvatarOtelConfig (Pydantic: env vars + kwargs merged + validated)
+1.  Parse ModalTraceConfig (Pydantic: env vars + kwargs merged + validated)
 2.  Set up TracerProvider + BatchSpanProcessor + PendingSpanProcessor → OTLP
 3.  Set up MeterProvider + PeriodicExportingMetricReader → OTLP
 4.  Set up LoggerProvider + BatchLogRecordProcessor → OTLP
@@ -425,7 +425,7 @@ sdk = video_ai_telemetry.init(
 12. Start asyncio event loop monitor (if eventloop_monitoring)
 13. Configure AdaptiveSampler with config values
 14. Create root session span
-15. Return RTVideoOtelSDK instance
+15. Return ModalTraceSDK instance
 ```
 
 **Backend compatibility (standard OTLP, no plugins needed):**
@@ -444,11 +444,11 @@ sdk = video_ai_telemetry.init(
 **SDK return object — context-manager compatible:**
 ```python
 # As context manager (auto-stop on exit):
-with video_ai_telemetry.init(...) as sdk:
+with modaltrace.init(...) as sdk:
     run_pipeline()
 
 # As object (manual stop):
-sdk = video_ai_telemetry.init(...)
+sdk = modaltrace.init(...)
 sdk.av_tracker          # AVSyncTracker
 sdk.frame_aggregator    # FrameMetricsAggregator
 sdk.stop()              # Flush everything + teardown
@@ -463,17 +463,17 @@ sdk.stop()              # Flush everything + teardown
 
 **OTel signal:** `ObservableGauge` (not histogram) — GPU metrics are instantaneous state. Callback pattern: SDK calls the callback at export time; `GPUMonitor` returns cached readings from the poll thread.
 
-**Metrics per device (all carry `rt_video.gpu.device_index` attribute):**
+**Metrics per device (all carry `modaltrace.gpu.device_index` attribute):**
 
 | Metric | Unit | NVML source |
 |---|---|---|
-| `rt_video.gpu.utilization` | % | `nvmlDeviceGetUtilizationRates().gpu` |
-| `rt_video.gpu.memory.utilization` | % | `nvmlDeviceGetUtilizationRates().memory` |
-| `rt_video.gpu.memory.used` | MB | `nvmlDeviceGetMemoryInfo().used` |
-| `rt_video.gpu.memory.free` | MB | `nvmlDeviceGetMemoryInfo().free` |
-| `rt_video.gpu.memory.total` | MB | `nvmlDeviceGetMemoryInfo().total` |
-| `rt_video.gpu.temperature` | °C | `nvmlDeviceGetTemperature(NVML_TEMPERATURE_GPU)` |
-| `rt_video.gpu.power.draw` | W | `nvmlDeviceGetPowerUsage() / 1000` |
+| `modaltrace.gpu.utilization` | % | `nvmlDeviceGetUtilizationRates().gpu` |
+| `modaltrace.gpu.memory.utilization` | % | `nvmlDeviceGetUtilizationRates().memory` |
+| `modaltrace.gpu.memory.used` | MB | `nvmlDeviceGetMemoryInfo().used` |
+| `modaltrace.gpu.memory.free` | MB | `nvmlDeviceGetMemoryInfo().free` |
+| `modaltrace.gpu.memory.total` | MB | `nvmlDeviceGetMemoryInfo().total` |
+| `modaltrace.gpu.temperature` | °C | `nvmlDeviceGetTemperature(NVML_TEMPERATURE_GPU)` |
+| `modaltrace.gpu.power.draw` | W | `nvmlDeviceGetPowerUsage() / 1000` |
 
 **Three failure modes handled silently:** `pynvml` not installed, no NVIDIA GPU present, individual metric unavailable (some GPUs don't expose power draw).
 
@@ -484,7 +484,7 @@ sdk.stop()              # Flush everything + teardown
 ### 🟠 HIGH: Pending Span Processor (NEW — from Logfire gap analysis)
 **File:** `tracing/pending.py`
 
-**Problem:** Without this, the `rt_video.session` root span (which lives for the entire avatar session) is invisible to the backend until `sdk.stop()` is called. A 10-minute avatar session appears as 10 minutes of silence followed by a burst of data.
+**Problem:** Without this, the `modaltrace.session` root span (which lives for the entire avatar session) is invisible to the backend until `sdk.stop()` is called. A 10-minute avatar session appears as 10 minutes of silence followed by a burst of data.
 
 **Solution:** `PendingSpanProcessor` exports a snapshot of every open (not-yet-ended) span at a configurable interval. Inspired directly by Logfire's implementation.
 
@@ -494,7 +494,7 @@ class PendingSpanProcessor(SpanProcessor):
     """
     Exports a snapshot of all currently-open spans at a fixed interval.
     The snapshot is a copy with the current timestamp as an artificial end_time,
-    marked with `rt_video.span.pending = True` so backends can distinguish
+    marked with `modaltrace.span.pending = True` so backends can distinguish
     pending snapshots from completed spans.
     """
 
@@ -533,7 +533,7 @@ class PendingSpanProcessor(SpanProcessor):
         self._exporter.export(snapshots)
 ```
 
-**Backend rendering:** The `rt_video.span.pending = True` attribute tells the UI to render these with a different color/style (dashed border in Grafana, "in progress" badge in Datadog). Any backend that doesn't understand this attribute simply shows them as normal spans with short durations, which is still useful.
+**Backend rendering:** The `modaltrace.span.pending = True` attribute tells the UI to render these with a different color/style (dashed border in Grafana, "in progress" badge in Datadog). Any backend that doesn't understand this attribute simply shows them as normal spans with short durations, which is still useful.
 
 **Flush interval config:** `pending_span_flush_interval_ms = 5_000` (default 5s). Shorter = more real-time visibility, more export overhead. 5s is a good production default.
 
@@ -542,15 +542,15 @@ class PendingSpanProcessor(SpanProcessor):
 ### 🟠 HIGH: Structured Log API (NEW — from Logfire gap analysis)
 **File:** `logging/api.py`
 
-**Problem:** `video-ai-telemetry` was trace-and-metrics only. Users who want to emit pipeline events (warnings, errors, info about pipeline state) had to use Python's `logging` stdlib separately, losing OTel context propagation and structured attribute extraction.
+**Problem:** `modaltrace` was trace-and-metrics only. Users who want to emit pipeline events (warnings, errors, info about pipeline state) had to use Python's `logging` stdlib separately, losing OTel context propagation and structured attribute extraction.
 
 **Public API:**
 ```python
-video_ai_telemetry.info("Pipeline started", session_id=session_id, target_fps=30)
-video_ai_telemetry.debug("FLAME params computed", param_count=236, drift_ms=-2.4)
-video_ai_telemetry.warning("A/V drift threshold exceeded", drift_ms=47.3, chunk_id=1024)
-video_ai_telemetry.error("GPU OOM during render", model_name="ARTalk", batch_size=4)
-video_ai_telemetry.exception("Unhandled error in pipeline stage", stage="encode")
+modaltrace.info("Pipeline started", session_id=session_id, target_fps=30)
+modaltrace.debug("FLAME params computed", param_count=236, drift_ms=-2.4)
+modaltrace.warning("A/V drift threshold exceeded", drift_ms=47.3, chunk_id=1024)
+modaltrace.error("GPU OOM during render", model_name="ARTalk", batch_size=4)
+modaltrace.exception("Unhandled error in pipeline stage", stage="encode")
 ```
 
 **All kwargs become structured OTel log record attributes** — queryable in any OTel log backend.
@@ -559,7 +559,7 @@ video_ai_telemetry.exception("Unhandled error in pipeline stage", stage="encode"
 ```python
 chunk_id = 42
 drift = 47.3
-video_ai_telemetry.warning("A/V drift exceeded on chunk {chunk_id}", chunk_id=chunk_id, drift_ms=drift)
+modaltrace.warning("A/V drift exceeded on chunk {chunk_id}", chunk_id=chunk_id, drift_ms=drift)
 # span_name = "A/V drift exceeded on chunk {chunk_id}"  (queryable, consistent)
 # message   = "A/V drift exceeded on chunk 42"           (human-readable)
 # attributes: chunk_id=42, drift_ms=47.3
@@ -567,7 +567,7 @@ video_ai_telemetry.warning("A/V drift exceeded on chunk {chunk_id}", chunk_id=ch
 
 **Implementation on top of OTel Logs API:**
 - `LoggerProvider` set up during `init()` alongside `TracerProvider` and `MeterProvider`
-- `video_ai_telemetry.info(msg, **attrs)` calls `otel_logger.emit(LogRecord(body=msg, attributes=attrs, severity=INFO))`
+- `modaltrace.info(msg, **attrs)` calls `otel_logger.emit(LogRecord(body=msg, attributes=attrs, severity=INFO))`
 - Each log record carries the current OTel trace context (`trace_id`, `span_id`) automatically — logs are correlated to the active span without any manual plumbing
 - `log_console=True` (default) also prints to stdout with indentation matching active span depth
 
@@ -661,7 +661,7 @@ def my_callback(key: str, value: str, pattern) -> bool:
         return True   # model names contain "secret" sometimes but aren't PII
     return False
 
-video_ai_telemetry.init(scrubbing_callback=my_callback)
+modaltrace.init(scrubbing_callback=my_callback)
 ```
 
 **Key design:** Scrubbing happens in `on_end` (after span is complete), not on attribute write. This avoids overhead on the hot path. The span processor runs before the `BatchSpanProcessor` in the chain.
@@ -702,7 +702,7 @@ _lock: threading.Lock               # held for ~50ns (dict lookup + write)
 def install_eventloop_monitor(threshold_ms: float = 100.0):
     """
     Patch asyncio.events.Handle._run to detect event loop blocking.
-    Emits video_ai_telemetry.warning() when a handle blocks longer than threshold_ms.
+    Emits modaltrace.warning() when a handle blocks longer than threshold_ms.
     """
     import asyncio
     original_run = asyncio.events.Handle._run
@@ -715,7 +715,7 @@ def install_eventloop_monitor(threshold_ms: float = 100.0):
             elapsed_ms = (time.perf_counter() - start) * 1000
             if elapsed_ms > threshold_ms:
                 # Use the structured log API to emit the warning
-                video_ai_telemetry.warning(
+                modaltrace.warning(
                     "Event loop blocked for {elapsed_ms:.1f}ms",
                     elapsed_ms=elapsed_ms,
                     threshold_ms=threshold_ms,
@@ -734,11 +734,11 @@ def install_eventloop_monitor(threshold_ms: float = 100.0):
 ### 🟡 LOW: WebRTC / Transport Metrics
 **File:** `instrumentation/transport.py`
 
-**Requires:** `video-ai-telemetry[webrtc]` extra. Must be explicitly started — never auto-instruments.
+**Requires:** `modaltrace[webrtc]` extra. Must be explicitly started — never auto-instruments.
 
 **Usage:**
 ```python
-from video_ai_telemetry.instrumentation.transport import WebRTCMetricsAdapter
+from modaltrace.instrumentation.transport import WebRTCMetricsAdapter
 adapter = WebRTCMetricsAdapter(peer_connection, poll_interval_s=2.0)
 adapter.start()
 ```
@@ -755,13 +755,13 @@ adapter.start()
 
 | Metric | Unit |
 |---|---|
-| `rt_video.transport.rtt` | ms |
-| `rt_video.transport.jitter` | ms |
-| `rt_video.transport.packet_loss` | % |
-| `rt_video.transport.frame_rate` | fps |
-| `rt_video.transport.bitrate` | kbps |
+| `modaltrace.transport.rtt` | ms |
+| `modaltrace.transport.jitter` | ms |
+| `modaltrace.transport.packet_loss` | % |
+| `modaltrace.transport.frame_rate` | fps |
+| `modaltrace.transport.bitrate` | kbps |
 
-All carry `rt_video.transport.protocol="webrtc"` and `rt_video.transport.stream` ("audio"/"video") attributes.
+All carry `modaltrace.transport.protocol="webrtc"` and `modaltrace.transport.stream` ("audio"/"video") attributes.
 
 ---
 
@@ -772,59 +772,59 @@ All string constants in one place — zero magic strings in the rest of the code
 
 ```python
 class PipelineAttributes:
-    ID                = "rt_video.pipeline.id"
-    SESSION_ID        = "rt_video.pipeline.session_id"
-    STAGE_NAME        = "rt_video.pipeline.stage.name"
-    STAGE_DURATION_MS = "rt_video.pipeline.stage.duration_ms"
-    FRAME_SEQ         = "rt_video.pipeline.frame.sequence_number"
-    TARGET_FPS        = "rt_video.pipeline.target_fps"
-    SPAN_PENDING      = "rt_video.span.pending"       # True for PendingSpanProcessor snapshots
+    ID                = "modaltrace.pipeline.id"
+    SESSION_ID        = "modaltrace.pipeline.session_id"
+    STAGE_NAME        = "modaltrace.pipeline.stage.name"
+    STAGE_DURATION_MS = "modaltrace.pipeline.stage.duration_ms"
+    FRAME_SEQ         = "modaltrace.pipeline.frame.sequence_number"
+    TARGET_FPS        = "modaltrace.pipeline.target_fps"
+    SPAN_PENDING      = "modaltrace.span.pending"       # True for PendingSpanProcessor snapshots
 
 class InferenceAttributes:
-    MODEL_NAME              = "rt_video.inference.model_name"
-    FORWARD_PASS_MS         = "rt_video.inference.forward_pass_ms"
-    BATCH_SIZE              = "rt_video.inference.batch_size"
-    GPU_MEMORY_MB           = "rt_video.inference.gpu.memory_allocated_mb"
-    GPU_MEMORY_DELTA_MB     = "rt_video.inference.gpu.memory_delta_mb"
-    INPUT_SHAPES            = "rt_video.inference.input_shapes"
-    DEVICE                  = "rt_video.inference.device"
+    MODEL_NAME              = "modaltrace.inference.model_name"
+    FORWARD_PASS_MS         = "modaltrace.inference.forward_pass_ms"
+    BATCH_SIZE              = "modaltrace.inference.batch_size"
+    GPU_MEMORY_MB           = "modaltrace.inference.gpu.memory_allocated_mb"
+    GPU_MEMORY_DELTA_MB     = "modaltrace.inference.gpu.memory_delta_mb"
+    INPUT_SHAPES            = "modaltrace.inference.input_shapes"
+    DEVICE                  = "modaltrace.inference.device"
 
-class AvatarAttributes:
-    FLAME_INFERENCE_MS      = "avatar.flame.inference_ms"
-    FLAME_PARAM_COUNT       = "avatar.flame.parameter_count"
-    RENDER_FRAME_MS         = "avatar.render.frame_ms"
-    RENDER_RESOLUTION       = "avatar.render.resolution"
-    MESH_VERTEX_COUNT       = "avatar.mesh.vertex_count"
-    FRAME_SEQ               = "avatar.frame.sequence_number"
+class ModalAttributes:
+    FLAME_INFERENCE_MS      = "modaltrace.flame.inference_ms"
+    FLAME_PARAM_COUNT       = "modaltrace.flame.parameter_count"
+    RENDER_FRAME_MS         = "modaltrace.render.frame_ms"
+    RENDER_RESOLUTION       = "modaltrace.render.resolution"
+    MESH_VERTEX_COUNT       = "modaltrace.mesh.vertex_count"
+    FRAME_SEQ               = "modaltrace.frame.sequence_number"
 
 class AVSyncAttributes:
-    DRIFT_MS                = "rt_video.av_sync.drift_ms"
-    JITTER_MS               = "rt_video.av_sync.jitter_ms"
-    THRESHOLD_MS            = "rt_video.av_sync.threshold_ms"
-    UNMATCHED_CHUNKS        = "rt_video.av_sync.unmatched_chunks"
-    CHUNK_ID                = "rt_video.av_sync.chunk_id"
+    DRIFT_MS                = "modaltrace.av_sync.drift_ms"
+    JITTER_MS               = "modaltrace.av_sync.jitter_ms"
+    THRESHOLD_MS            = "modaltrace.av_sync.threshold_ms"
+    UNMATCHED_CHUNKS        = "modaltrace.av_sync.unmatched_chunks"
+    CHUNK_ID                = "modaltrace.av_sync.chunk_id"
 
 class GPUAttributes:
-    DEVICE_INDEX            = "rt_video.gpu.device_index"
-    UTILIZATION_PCT         = "rt_video.gpu.utilization"
-    MEMORY_USED_MB          = "rt_video.gpu.memory.used"
-    MEMORY_FREE_MB          = "rt_video.gpu.memory.free"
-    TEMPERATURE_C           = "rt_video.gpu.temperature"
-    POWER_W                 = "rt_video.gpu.power.draw"
+    DEVICE_INDEX            = "modaltrace.gpu.device_index"
+    UTILIZATION_PCT         = "modaltrace.gpu.utilization"
+    MEMORY_USED_MB          = "modaltrace.gpu.memory.used"
+    MEMORY_FREE_MB          = "modaltrace.gpu.memory.free"
+    TEMPERATURE_C           = "modaltrace.gpu.temperature"
+    POWER_W                 = "modaltrace.gpu.power.draw"
 
 class TransportAttributes:
-    PROTOCOL                = "rt_video.transport.protocol"
-    RTT_MS                  = "rt_video.transport.rtt_ms"
-    JITTER_MS               = "rt_video.transport.jitter_ms"
-    PACKET_LOSS_PCT         = "rt_video.transport.packet_loss_percent"
-    BITRATE_KBPS            = "rt_video.transport.bitrate_kbps"
-    FRAME_RATE_ACTUAL       = "rt_video.transport.frame_rate_actual"
-    STREAM                  = "rt_video.transport.stream"
+    PROTOCOL                = "modaltrace.transport.protocol"
+    RTT_MS                  = "modaltrace.transport.rtt_ms"
+    JITTER_MS               = "modaltrace.transport.jitter_ms"
+    PACKET_LOSS_PCT         = "modaltrace.transport.packet_loss_percent"
+    BITRATE_KBPS            = "modaltrace.transport.bitrate_kbps"
+    FRAME_RATE_ACTUAL       = "modaltrace.transport.frame_rate_actual"
+    STREAM                  = "modaltrace.transport.stream"
 
 class EventLoopAttributes:
-    ELAPSED_MS              = "rt_video.eventloop.blocked_ms"
-    THRESHOLD_MS            = "rt_video.eventloop.threshold_ms"
-    HANDLE_CALLBACK         = "rt_video.eventloop.handle_callback"
+    ELAPSED_MS              = "modaltrace.eventloop.blocked_ms"
+    THRESHOLD_MS            = "modaltrace.eventloop.threshold_ms"
+    HANDLE_CALLBACK         = "modaltrace.eventloop.handle_callback"
 ```
 
 ---
@@ -832,29 +832,29 @@ class EventLoopAttributes:
 ## Public API Surface
 **File:** `__init__.py`
 
-Everything a user needs is importable from `video_ai_telemetry` directly:
+Everything a user needs is importable from `modaltrace` directly:
 
 ```python
-import video_ai_telemetry
+import modaltrace
 
 # Init
-sdk = video_ai_telemetry.init(...)
+sdk = modaltrace.init(...)
 
 # Tracing
-@video_ai_telemetry.pipeline_stage("flame_inference")
+@modaltrace.pipeline_stage("flame_inference")
 async def run_model(...): ...
 
-async with video_ai_telemetry.stage("render") as s:
+async with modaltrace.stage("render") as s:
     s.record("vertex_count", 12345)
 
 # Structured logging
-video_ai_telemetry.trace("Trace level message", key=value)
-video_ai_telemetry.debug("Debug message", key=value)
-video_ai_telemetry.info("Info message", key=value)
-video_ai_telemetry.notice("Notice message", key=value)
-video_ai_telemetry.warning("Warning message", key=value)
-video_ai_telemetry.error("Error message", key=value)
-video_ai_telemetry.exception("Exception message")       # captures current exception
+modaltrace.trace("Trace level message", key=value)
+modaltrace.debug("Debug message", key=value)
+modaltrace.info("Info message", key=value)
+modaltrace.notice("Notice message", key=value)
+modaltrace.warning("Warning message", key=value)
+modaltrace.error("Error message", key=value)
+modaltrace.exception("Exception message")       # captures current exception
 
 # A/V sync
 av = sdk.av_tracker
@@ -877,10 +877,10 @@ sdk.flush()                                      # Force-flush all exporters
 
 ```python
 import torch
-import video_ai_telemetry
+import modaltrace
 
 # 1. One-liner init — all features enabled by default
-sdk = video_ai_telemetry.init(
+sdk = modaltrace.init(
     service_name="artalk-avatar",
     otlp_endpoint="http://localhost:4318",
     gpu_monitoring=True,
@@ -894,20 +894,20 @@ artalk = ARTalkModel().cuda()
 flame  = FLAMEDecoder().cuda()
 
 # 3. Structured logging — correlated to active span automatically
-video_ai_telemetry.info("Pipeline initialised", model="artalk", device="cuda:0")
+modaltrace.info("Pipeline initialised", model="artalk", device="cuda:0")
 
 # 4. Decorator-based pipeline stages
-@video_ai_telemetry.pipeline_stage("audio_ingest")
+@modaltrace.pipeline_stage("audio_ingest")
 async def ingest_audio(raw: bytes) -> torch.Tensor:
     return torch.frombuffer(raw, dtype=torch.float32).cuda()
 
-@video_ai_telemetry.pipeline_stage("flame_inference")
+@modaltrace.pipeline_stage("flame_inference")
 async def run_flame(audio: torch.Tensor) -> torch.Tensor:
     return artalk(audio)   # auto-instrumented by pytorch patch
 
-@video_ai_telemetry.pipeline_stage("render")
+@modaltrace.pipeline_stage("render")
 async def render(params: torch.Tensor) -> bytes:
-    async with video_ai_telemetry.stage("mesh_deform") as s:
+    async with modaltrace.stage("mesh_deform") as s:
         mesh = flame(params)
         s.record("vertex_count", mesh.vertices.shape[0])
     return renderer.render(mesh)

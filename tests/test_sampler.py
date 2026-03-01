@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 
-from video_ai_telemetry.tracing.sampler import AdaptiveSampler
+from modaltrace.tracing.sampler import AdaptiveSampler
 
 
 class TestAdaptiveSampler:

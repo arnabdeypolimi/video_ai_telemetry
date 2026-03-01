@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from video_ai_telemetry.instrumentation.transport import WebRTCMetricsAdapter
+from modaltrace.instrumentation.transport import WebRTCMetricsAdapter
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -78,11 +78,11 @@ class TestLifecycle:
         adapter.start()
         assert meter.create_histogram.call_count == 5
         histogram_names = {call.args[0] for call in meter.create_histogram.call_args_list}
-        assert "rt_video.transport.rtt" in histogram_names
-        assert "rt_video.transport.jitter" in histogram_names
-        assert "rt_video.transport.packet_loss" in histogram_names
-        assert "rt_video.transport.frame_rate" in histogram_names
-        assert "rt_video.transport.bitrate" in histogram_names
+        assert "modaltrace.transport.rtt" in histogram_names
+        assert "modaltrace.transport.jitter" in histogram_names
+        assert "modaltrace.transport.packet_loss" in histogram_names
+        assert "modaltrace.transport.frame_rate" in histogram_names
+        assert "modaltrace.transport.bitrate" in histogram_names
         await adapter.stop()
 
     @pytest.mark.asyncio
@@ -114,8 +114,8 @@ class TestStatsParsing:
         frame_rate_hist.record.assert_called_once()
         call_args = frame_rate_hist.record.call_args
         assert call_args.args[0] == 30.0
-        assert call_args.args[1]["rt_video.transport.protocol"] == "webrtc"
-        assert call_args.args[1]["rt_video.transport.stream"] == "video"
+        assert call_args.args[1]["modaltrace.transport.protocol"] == "webrtc"
+        assert call_args.args[1]["modaltrace.transport.stream"] == "video"
 
         await adapter.stop()
 

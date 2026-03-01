@@ -1,6 +1,6 @@
 """Pydantic Settings model — single source of truth for all configuration.
 
-Users can configure via Python kwargs, environment variables (AVATAR_OTEL_*), or .env files.
+Users can configure via Python kwargs, environment variables (MODALTRACE_*), or .env files.
 """
 
 from __future__ import annotations
@@ -12,11 +12,11 @@ from pydantic import AnyHttpUrl, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class AvatarOtelConfig(BaseSettings):
-    """Configuration for video-ai-telemetry SDK."""
+class ModalTraceConfig(BaseSettings):
+    """Configuration for modaltrace SDK."""
 
     # ── Identity ──────────────────────────────────────────────────────────
-    service_name: str = "avatar-pipeline"
+    service_name: str = "modaltrace-pipeline"
     service_version: str = "0.0.0"
     deployment_environment: str = "development"
 
@@ -71,7 +71,7 @@ class AvatarOtelConfig(BaseSettings):
     eventloop_lag_threshold_ms: float = 100.0
 
     model_config = SettingsConfigDict(
-        env_prefix="AVATAR_OTEL_",
+        env_prefix="MODALTRACE_",
         env_file=".env",
         env_file_encoding="utf-8",
         arbitrary_types_allowed=True,

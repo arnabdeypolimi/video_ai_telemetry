@@ -15,7 +15,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from video_ai_telemetry.logging.scrubber import ScrubbingSpanProcessor
+from modaltrace.logging.scrubber import ScrubbingSpanProcessor
 
 # ---------------------------------------------------------------------------
 # Helpers

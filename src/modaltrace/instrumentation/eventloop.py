@@ -4,7 +4,7 @@ import asyncio
 import logging
 import time
 
-logger = logging.getLogger("video_ai_telemetry.eventloop")
+logger = logging.getLogger("modaltrace.eventloop")
 
 _original_handle_run = None
 _warning_callback = None

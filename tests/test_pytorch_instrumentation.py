@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from video_ai_telemetry.instrumentation.pytorch import (
+from modaltrace.instrumentation.pytorch import (
     instrument_pytorch,
     uninstrument_pytorch,
 )
@@ -104,7 +104,7 @@ class TestPyTorchInstrumentation:
                 aggregator=mock_aggregator,
             )
 
-            from video_ai_telemetry.instrumentation import pytorch
+            from modaltrace.instrumentation import pytorch
 
             pytorch._original_module_call = original_call
 

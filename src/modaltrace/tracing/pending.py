@@ -1,7 +1,7 @@
 """PendingSpanProcessor — exports snapshots of currently-open (in-flight) spans.
 
 Exports a ReadableSpan-like snapshot at a fixed interval for each open span,
-marking each snapshot with rt_video.span.pending = True so backends can
+marking each snapshot with modaltrace.span.pending = True so backends can
 distinguish pending snapshots from completed spans.
 """
 
@@ -13,7 +13,7 @@ import time
 from opentelemetry.sdk.trace import ReadableSpan, SpanProcessor
 from opentelemetry.sdk.trace.export import SpanExporter
 
-from video_ai_telemetry.conventions.attributes import PipelineAttributes
+from modaltrace.conventions.attributes import PipelineAttributes
 
 
 def _make_pending_snapshot(span: ReadableSpan, now_ns: int) -> ReadableSpan:
@@ -22,7 +22,7 @@ def _make_pending_snapshot(span: ReadableSpan, now_ns: int) -> ReadableSpan:
     The snapshot has:
     - The same metadata as the original span.
     - ``end_time`` set to ``now_ns`` (artificial end time for the snapshot).
-    - ``rt_video.span.pending = True`` added to attributes.
+    - ``modaltrace.span.pending = True`` added to attributes.
     """
     attrs_copy: dict = dict(span.attributes) if span.attributes else {}
     attrs_copy[PipelineAttributes.SPAN_PENDING] = True
@@ -47,7 +47,7 @@ class PendingSpanProcessor(SpanProcessor):
     """Exports a snapshot of all currently-open spans at a fixed interval.
 
     The snapshot is a copy with the current timestamp as an artificial
-    end_time, marked with rt_video.span.pending = True so backends can
+    end_time, marked with modaltrace.span.pending = True so backends can
     distinguish pending snapshots from completed spans.
 
     Usage::

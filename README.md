@@ -1,121 +1,224 @@
-# video-ai-telemetry
+# ModalTrace
 
-OpenTelemetry observability for real-time AI avatar and video pipelines.
+<div align="center">
 
-## Features
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![PyPI version](https://img.shields.io/pypi/v/modaltrace.svg)](https://pypi.org/project/modaltrace/)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue)](https://www.python.org/downloads/)
+[![CI Status](https://github.com/arnabdeypolimi/video-ai-telemetry/actions/workflows/ci.yml/badge.svg)](https://github.com/arnabdeypolimi/video-ai-telemetry/actions)
 
-- **One-liner init** — `video_ai_telemetry.init(service_name="my-pipeline")` wires up traces, metrics, and logs
-- **Pipeline stage tracing** — `@pipeline_stage` decorator and `stage()` context manager with adaptive sampling
-- **Frame metrics aggregator** — Ring buffer with ~200ns hot-path overhead, daemon flush to OTel
-- **A/V sync tracking** — Drift and jitter measurement with warning callbacks
-- **PyTorch auto-instrumentation** — Two-tier recording (ring buffer always, span on 1% or slow)
-- **GPU monitoring** — NVML-backed utilization, memory, temperature, power gauges
-- **WebRTC transport metrics** — RTT, jitter, packet loss, frame rate from aiortc stats
-- **Structured logging** — `video_ai_telemetry.info("msg", key=value)` with trace context correlation
-- **PII scrubbing** — Span processor redacting sensitive attribute patterns
-- **Context propagation** — ThreadPool/ProcessPool OTel context forwarding
-- **Event loop monitor** — Detects asyncio blocking above threshold
-- **Pending span snapshots** — Exports in-flight spans for long-running pipeline visibility
+**OpenTelemetry observability for real-time AI video applications**
 
-## Quick start
+[Documentation](https://github.com/arnabdeypolimi/video-ai-telemetry/wiki) • [Issues](https://github.com/arnabdeypolimi/video-ai-telemetry/issues) • [Contributing](./CONTRIBUTING.md)
+
+</div>
+
+---
+
+## 🚀 What is ModalTrace?
+
+ModalTrace is an open-source OpenTelemetry library that provides production-grade observability for real-time AI video applications. It captures traces, metrics, and logs across your entire ML pipeline—from GPU operations and neural network inference to video rendering and transport layer performance.
+
+Built for **production AI systems**, ModalTrace helps you understand latency bottlenecks, monitor resource utilization, and debug performance issues in complex distributed video AI pipelines.
+
+---
+
+## ✨ Features
+
+**📊 Comprehensive Observability**
+Trace execution paths across your entire pipeline with automatic span generation for each processing stage. Correlate traces with structured logging and metrics for complete visibility.
+
+**⚡ Real-time Metrics**
+Monitor frame rates, GPU memory allocation, inference latency, and synchronization drift with sub-millisecond precision. Built-in ring buffer aggregation for efficient metric collection.
+
+**🔍 Semantic Conventions**
+All telemetry uses standardized attribute keys (`modaltrace.*`) eliminating magic strings and enabling consistent instrumentation across teams.
+
+**🧠 PyTorch & GPU Instrumentation**
+Automatic instrumentation of PyTorch operations, GPU memory tracking, and device utilization metrics. Understand exactly where your model is spending time.
+
+**🎬 Audio/Video Synchronization Tracking**
+Detect and monitor A/V sync drift with configurable thresholds. Automatically log chunk mismatches and jitter metrics.
+
+**🎯 Adaptive Sampling**
+Intelligent span sampling based on anomaly detection. Automatically capture high-latency frames and unusual execution patterns without overwhelming your backend.
+
+**🛡️ PII Scrubbing**
+Built-in scrubbing pipeline removes sensitive data from logs and attributes. Customizable patterns for your specific compliance needs.
+
+**📡 OpenTelemetry Export**
+Native support for OTLP over HTTP and gRPC. Export to any OpenTelemetry-compatible backend: Jaeger, Datadog, New Relic, Honeycomb, or on-prem observability stacks.
+
+---
+
+## 🚀 Quick Start
+
+### 1. Install
 
 ```bash
-pip install video-ai-telemetry
-# With optional extras:
-pip install video-ai-telemetry[pytorch,gpu,webrtc]
-# Or everything:
-pip install video-ai-telemetry[all]
+pip install modaltrace
 ```
+
+For optional features:
+
+```bash
+pip install modaltrace[pytorch,gpu,webrtc]
+```
+
+### 2. Configure & Initialize
+
+Create a `.env` file or set environment variables:
+
+```bash
+MODALTRACE_SERVICE_NAME=my-video-pipeline
+MODALTRACE_OTLP_ENDPOINT=http://localhost:4318
+MODALTRACE_PYTORCH_INSTRUMENTATION=true
+MODALTRACE_GPU_MONITORING=true
+```
+
+Initialize the SDK in your application:
 
 ```python
-import video_ai_telemetry
+from modaltrace import ModalTraceSDK
 
-# Initialize — configurable via kwargs or AVATAR_OTEL_* env vars
-with video_ai_telemetry.init(service_name="artalk-avatar") as sdk:
+sdk = ModalTraceSDK()
+sdk.start()
 
-    # Trace pipeline stages
-    @video_ai_telemetry.pipeline_stage("flame_inference")
-    async def run_flame_model(params):
-        return model(params)
-
-    # Context manager for ad-hoc stages
-    with video_ai_telemetry.stage("render") as s:
-        s.record("vertex_count", 12345)
-        frame = render(mesh)
-
-    # Structured logging with trace correlation
-    video_ai_telemetry.info("Frame rendered", fps=30, resolution="1080p")
-
-    # Frame metrics (hot path)
-    sdk.frame_aggregator.record(forward_pass_ms=11.2, render_ms=3.1)
-
-    # A/V sync tracking
-    sdk.av_tracker.audio_captured(chunk_id=42)
-    # ... later ...
-    drift = sdk.av_tracker.frame_rendered(chunk_id=42)
+# Your ML pipeline code here
+# Spans are automatically created for instrumented operations
 ```
 
-## Configuration
+### 3. View Telemetry
 
-All settings via `AvatarOtelConfig` (Pydantic Settings):
+Access your traces at your observability backend (e.g., `http://localhost:16686` for Jaeger):
 
-| Setting | Env var | Default |
-|---------|---------|---------|
-| `service_name` | `AVATAR_OTEL_SERVICE_NAME` | `avatar-pipeline` |
-| `otlp_endpoint` | `AVATAR_OTEL_OTLP_ENDPOINT` | `http://localhost:4318` |
-| `otlp_protocol` | `AVATAR_OTEL_OTLP_PROTOCOL` | `http` |
-| `pytorch_instrumentation` | `AVATAR_OTEL_PYTORCH_INSTRUMENTATION` | `true` |
-| `gpu_monitoring` | `AVATAR_OTEL_GPU_MONITORING` | `true` |
-| `ring_buffer_size` | `AVATAR_OTEL_RING_BUFFER_SIZE` | `512` |
-| `av_drift_warning_ms` | `AVATAR_OTEL_AV_DRIFT_WARNING_MS` | `40.0` |
-| `pytorch_sample_rate` | `AVATAR_OTEL_PYTORCH_SAMPLE_RATE` | `0.01` |
+```python
+# Start a pipeline span
+from modaltrace import get_tracer
+tracer = get_tracer(__name__)
 
-See `video_ai_telemetry.config.AvatarOtelConfig` for the full list.
+with tracer.start_as_current_span("process_frame") as span:
+    span.set_attribute("modaltrace.pipeline.frame.sequence_number", frame_id)
+    # Your frame processing logic here
+```
 
-## Architecture
+---
+
+## ⚙️ Configuration
+
+All configuration is available via environment variables (prefix: `MODALTRACE_`) or Python kwargs to `ModalTraceConfig`:
+
+| Setting | Env Variable | Type | Default | Description |
+|---------|-------------|------|---------|-------------|
+| **Service Identity** |
+| `service_name` | `MODALTRACE_SERVICE_NAME` | str | `modaltrace-pipeline` | Service identifier in telemetry |
+| `service_version` | `MODALTRACE_SERVICE_VERSION` | str | `0.0.0` | Semantic version of your service |
+| `deployment_environment` | `MODALTRACE_DEPLOYMENT_ENVIRONMENT` | str | `development` | Environment (dev/staging/prod) |
+| **OTLP Export** |
+| `otlp_endpoint` | `MODALTRACE_OTLP_ENDPOINT` | URL | `http://localhost:4318` | OpenTelemetry collector endpoint |
+| `otlp_protocol` | `MODALTRACE_OTLP_PROTOCOL` | str | `http` | Protocol: `http` or `grpc` |
+| `otlp_timeout_ms` | `MODALTRACE_OTLP_TIMEOUT_MS` | int | `10000` | Export timeout in milliseconds |
+| **Feature Flags** |
+| `pytorch_instrumentation` | `MODALTRACE_PYTORCH_INSTRUMENTATION` | bool | `true` | Auto-instrument PyTorch ops |
+| `gpu_monitoring` | `MODALTRACE_GPU_MONITORING` | bool | `true` | Track GPU metrics |
+| `webrtc_monitoring` | `MODALTRACE_WEBRTC_MONITORING` | bool | `false` | Monitor WebRTC transports |
+| `eventloop_monitoring` | `MODALTRACE_EVENTLOOP_MONITORING` | bool | `true` | Track event loop blocks |
+| **Sampler** |
+| `pytorch_sample_rate` | `MODALTRACE_PYTORCH_SAMPLE_RATE` | float (0-1) | `0.01` | Fraction of PyTorch ops to sample |
+| `anomaly_threshold_ms` | `MODALTRACE_ANOMALY_THRESHOLD_MS` | float | `50.0` | Latency threshold for anomaly capture |
+| **Metrics** |
+| `metrics_flush_interval_ms` | `MODALTRACE_METRICS_FLUSH_INTERVAL_MS` | int | `1000` | Metric aggregation window |
+| `ring_buffer_size` | `MODALTRACE_RING_BUFFER_SIZE` | int | `512` | Must be power of 2 |
+| **A/V Sync** |
+| `av_drift_warning_ms` | `MODALTRACE_AV_DRIFT_WARNING_MS` | float | `40.0` | Warn if drift exceeds this |
+| `av_chunk_ttl_s` | `MODALTRACE_AV_CHUNK_TTL_S` | float | `5.0` | Chunk retention period |
+| **PII Scrubbing** |
+| `scrubbing_enabled` | `MODALTRACE_SCRUBBING_ENABLED` | bool | `true` | Enable PII removal |
+| `scrubbing_patterns` | `MODALTRACE_SCRUBBING_PATTERNS` | list[str] | `[]` | Regex patterns to scrub |
+
+---
+
+## 📁 Architecture
 
 ```
-video_ai_telemetry/
-├── __init__.py              # Public API + init() orchestration
-├── config.py                # Pydantic Settings model
+modaltrace/
+├── config.py                 # Pydantic configuration model
+├── _registry.py             # Global SDK registry
 ├── conventions/
 │   └── attributes.py        # Semantic convention constants
 ├── tracing/
-│   ├── sampler.py           # AdaptiveSampler (force/anomaly/window)
-│   ├── pipeline.py          # @pipeline_stage, stage(), async_stage()
-│   ├── pending.py           # PendingSpanProcessor
-│   └── propagation.py       # ThreadPool/ProcessPool context propagation
+│   ├── pipeline.py          # Main trace pipeline
+│   ├── sampler.py           # Adaptive sampling logic
+│   ├── pending.py           # Pending spans management
+│   └── propagation.py       # Context propagation
 ├── metrics/
-│   ├── instruments.py       # Pre-allocated OTel instruments
-│   ├── aggregator.py        # Ring buffer + flush thread
-│   └── av_sync.py           # AVSyncTracker
-├── logging/
-│   ├── api.py               # Structured log functions
-│   └── scrubber.py          # PII redaction processor
+│   ├── instruments.py       # Metric instrument definitions
+│   ├── aggregator.py        # Ring buffer aggregation
+│   └── av_sync.py           # A/V sync metrics
 ├── instrumentation/
-│   ├── pytorch.py           # torch.nn.Module.__call__ patch
-│   ├── gpu.py               # NVML poller
-│   ├── eventloop.py         # asyncio Handle._run patch
-│   └── transport.py         # WebRTC stats adapter
+│   ├── pytorch.py           # PyTorch auto-instrumentation
+│   ├── gpu.py               # GPU monitoring
+│   ├── eventloop.py         # Event loop tracking
+│   └── transport.py         # Network transport metrics
+├── logging/
+│   ├── api.py               # Structured logging API
+│   └── scrubber.py          # PII scrubbing pipeline
 └── exporters/
-    └── setup.py             # OTLP provider configuration
+    └── setup.py             # OTLP exporter initialization
 ```
 
-## Development
+---
+
+## 🔧 Development
+
+### Setup
 
 ```bash
-# Clone and install
-git clone https://github.com/arnabdeypolimi/video_ai_telemetry.git
-cd video_ai_telemetry
-uv venv && uv pip install -e ".[dev]" --python .venv/bin/python
-
-# Run tests
-.venv/bin/python -m pytest tests/ -v
-
-# Lint
-.venv/bin/ruff check src/ tests/
+git clone https://github.com/arnabdeypolimi/video-ai-telemetry.git
+cd video-ai-telemetry
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -e ".[dev,all]"
 ```
 
-## License
+### Run Tests
 
-Apache-2.0
+```bash
+pytest tests/ -v
+```
+
+### Lint & Format
+
+```bash
+ruff check src/ tests/
+ruff format src/ tests/
+```
+
+### Type Check
+
+```bash
+mypy src/
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
+
+1. Open an [issue](https://github.com/arnabdeypolimi/video-ai-telemetry/issues) to discuss changes
+2. Fork the repository and create a feature branch
+3. Submit a pull request with tests for new functionality
+4. Ensure all tests pass and code is linted
+
+For detailed guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+---
+
+## 📄 License
+
+ModalTrace is licensed under the Apache License 2.0. See [LICENSE](./LICENSE) for details.
+
+---
+
+**Questions?** Open an [issue](https://github.com/arnabdeypolimi/video-ai-telemetry/issues) or check the [documentation](https://github.com/arnabdeypolimi/video-ai-telemetry/wiki).

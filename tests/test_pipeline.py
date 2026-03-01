@@ -7,15 +7,15 @@ from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor, SpanExporter, SpanExportResult
 
-from video_ai_telemetry.conventions.attributes import PipelineAttributes
-from video_ai_telemetry.tracing.pipeline import (
+from modaltrace.conventions.attributes import PipelineAttributes
+from modaltrace.tracing.pipeline import (
     StageContext,
     _NoOpStageContext,
     async_stage,
     pipeline_stage,
     stage,
 )
-from video_ai_telemetry.tracing.sampler import AdaptiveSampler
+from modaltrace.tracing.sampler import AdaptiveSampler
 
 
 class _CollectingExporter(SpanExporter):
@@ -62,7 +62,7 @@ class TestPipelineStageDecorator:
 
         spans = exporter.get_finished_spans()
         assert len(spans) == 1
-        assert spans[0].name == "rt_video.render"
+        assert spans[0].name == "modaltrace.render"
         assert spans[0].attributes[PipelineAttributes.STAGE_NAME] == "render"
         assert PipelineAttributes.STAGE_DURATION_MS in spans[0].attributes
 
@@ -79,7 +79,7 @@ class TestPipelineStageDecorator:
 
         spans = exporter.get_finished_spans()
         assert len(spans) == 1
-        assert spans[0].name == "rt_video.ingest"
+        assert spans[0].name == "modaltrace.ingest"
 
     def test_exception_recorded(self, tracing, always_sampler):
         tracer, exporter, _ = tracing

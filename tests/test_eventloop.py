@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import time
 
-from video_ai_telemetry.instrumentation.eventloop import (
+from modaltrace.instrumentation.eventloop import (
     install_eventloop_monitor,
     uninstall_eventloop_monitor,
 )
@@ -115,7 +115,7 @@ def test_default_logger_warning(caplog):
     install_eventloop_monitor(threshold_ms=50.0, warning_callback=None)
 
     try:
-        with caplog.at_level(logging.WARNING, logger="video_ai_telemetry.eventloop"):
+        with caplog.at_level(logging.WARNING, logger="modaltrace.eventloop"):
             loop = asyncio.new_event_loop()
 
             async def blocking_coro():

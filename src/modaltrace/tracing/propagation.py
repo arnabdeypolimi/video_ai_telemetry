@@ -21,7 +21,7 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 
 from opentelemetry import context as otel_context
 
-logger = logging.getLogger("video_ai_telemetry.propagation")
+logger = logging.getLogger("modaltrace.propagation")
 _original_thread_submit = None
 _original_process_submit = None
 

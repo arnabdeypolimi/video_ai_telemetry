@@ -4,9 +4,9 @@ import asyncio
 import logging
 from typing import Any
 
-from video_ai_telemetry.conventions.attributes import TransportAttributes
+from modaltrace.conventions.attributes import TransportAttributes
 
-logger = logging.getLogger("video_ai_telemetry.transport")
+logger = logging.getLogger("modaltrace.transport")
 
 
 class WebRTCMetricsAdapter:
@@ -20,15 +20,17 @@ class WebRTCMetricsAdapter:
     def start(self):
         if self._meter:
             self._histograms = {
-                "rtt": self._meter.create_histogram("rt_video.transport.rtt", unit="ms"),
-                "jitter": self._meter.create_histogram("rt_video.transport.jitter", unit="ms"),
+                "rtt": self._meter.create_histogram("modaltrace.transport.rtt", unit="ms"),
+                "jitter": self._meter.create_histogram("modaltrace.transport.jitter", unit="ms"),
                 "packet_loss": self._meter.create_histogram(
-                    "rt_video.transport.packet_loss", unit="%"
+                    "modaltrace.transport.packet_loss", unit="%"
                 ),
                 "frame_rate": self._meter.create_histogram(
-                    "rt_video.transport.frame_rate", unit="fps"
+                    "modaltrace.transport.frame_rate", unit="fps"
                 ),
-                "bitrate": self._meter.create_histogram("rt_video.transport.bitrate", unit="kbps"),
+                "bitrate": self._meter.create_histogram(
+                    "modaltrace.transport.bitrate", unit="kbps"
+                ),
             }
         self._task = asyncio.ensure_future(self._poll_loop())
 

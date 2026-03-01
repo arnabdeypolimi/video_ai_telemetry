@@ -1,26 +1,26 @@
-"""video-ai-telemetry: OpenTelemetry observability for real-time AI avatar and video pipelines.
+"""modaltrace: OpenTelemetry observability for real-time AI avatar and video pipelines.
 
-Everything a user needs is importable from `video_ai_telemetry` directly:
+Everything a user needs is importable from `modaltrace` directly:
 
-    import video_ai_telemetry
+    import modaltrace
 
-    sdk = video_ai_telemetry.init(service_name="artalk-avatar")
+    sdk = modaltrace.init(service_name="artalk-avatar")
 
-    @video_ai_telemetry.pipeline_stage("flame_inference")
+    @modaltrace.pipeline_stage("flame_inference")
     async def run_model(...): ...
 
-    async with video_ai_telemetry.stage("render") as s:
+    async with modaltrace.stage("render") as s:
         s.record("vertex_count", 12345)
 
-    video_ai_telemetry.info("Pipeline started", target_fps=30)
+    modaltrace.info("Pipeline started", target_fps=30)
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from video_ai_telemetry._version import __version__
-from video_ai_telemetry.logging.api import (
+from modaltrace._version import __version__
+from modaltrace.logging.api import (
     debug,
     error,
     exception,
@@ -28,10 +28,10 @@ from video_ai_telemetry.logging.api import (
     notice,
     warning,
 )
-from video_ai_telemetry.logging.api import (
+from modaltrace.logging.api import (
     trace_log as trace,
 )
-from video_ai_telemetry.tracing.pipeline import async_stage, pipeline_stage, stage
+from modaltrace.tracing.pipeline import async_stage, pipeline_stage, stage
 
 __all__ = [
     "__version__",
@@ -49,7 +49,7 @@ __all__ = [
 ]
 
 
-class RTVideoOtelSDK:
+class ModalTraceSDK:
     """SDK handle returned by init(). Context-manager compatible."""
 
     def __init__(
@@ -98,9 +98,9 @@ class RTVideoOtelSDK:
         if self._gpu_monitor is not None:
             self._gpu_monitor.stop()
 
-        from video_ai_telemetry.instrumentation.eventloop import uninstall_eventloop_monitor
-        from video_ai_telemetry.instrumentation.pytorch import uninstrument_pytorch
-        from video_ai_telemetry.tracing.propagation import unpatch_all
+        from modaltrace.instrumentation.eventloop import uninstall_eventloop_monitor
+        from modaltrace.instrumentation.pytorch import uninstrument_pytorch
+        from modaltrace.tracing.propagation import unpatch_all
 
         uninstrument_pytorch()
         unpatch_all()
@@ -111,36 +111,36 @@ class RTVideoOtelSDK:
         self._logger_provider.shutdown()
 
 
-def init(**kwargs: Any) -> RTVideoOtelSDK:
-    """Initialize video-ai-telemetry. One-liner to get full observability.
+def init(**kwargs: Any) -> ModalTraceSDK:
+    """Initialize modaltrace. One-liner to get full observability.
 
-    All kwargs are passed to AvatarOtelConfig (Pydantic Settings), which also
-    reads from AVATAR_OTEL_* environment variables and .env files.
+    All kwargs are passed to ModalTraceConfig (Pydantic Settings), which also
+    reads from MODALTRACE_* environment variables and .env files.
 
-    Returns an RTVideoOtelSDK handle with .frame_aggregator, .av_tracker,
+    Returns an ModalTraceSDK handle with .frame_aggregator, .av_tracker,
     .flush(), and .stop() methods. Also works as a context manager.
     """
-    from video_ai_telemetry import _registry
-    from video_ai_telemetry.config import AvatarOtelConfig
-    from video_ai_telemetry.exporters.setup import (
+    from modaltrace import _registry
+    from modaltrace.config import ModalTraceConfig
+    from modaltrace.exporters.setup import (
         create_resource,
         setup_logger_provider,
         setup_meter_provider,
         setup_tracer_provider,
     )
-    from video_ai_telemetry.instrumentation.eventloop import install_eventloop_monitor
-    from video_ai_telemetry.instrumentation.gpu import GPUMonitor
-    from video_ai_telemetry.instrumentation.pytorch import instrument_pytorch
-    from video_ai_telemetry.logging.api import _init_logging
-    from video_ai_telemetry.logging.scrubber import ScrubbingSpanProcessor
-    from video_ai_telemetry.metrics.aggregator import FrameMetricsAggregator
-    from video_ai_telemetry.metrics.av_sync import AVSyncTracker
-    from video_ai_telemetry.metrics.instruments import MetricInstruments
-    from video_ai_telemetry.tracing.pending import PendingSpanProcessor
-    from video_ai_telemetry.tracing.propagation import patch_all
-    from video_ai_telemetry.tracing.sampler import AdaptiveSampler
+    from modaltrace.instrumentation.eventloop import install_eventloop_monitor
+    from modaltrace.instrumentation.gpu import GPUMonitor
+    from modaltrace.instrumentation.pytorch import instrument_pytorch
+    from modaltrace.logging.api import _init_logging
+    from modaltrace.logging.scrubber import ScrubbingSpanProcessor
+    from modaltrace.metrics.aggregator import FrameMetricsAggregator
+    from modaltrace.metrics.av_sync import AVSyncTracker
+    from modaltrace.metrics.instruments import MetricInstruments
+    from modaltrace.tracing.pending import PendingSpanProcessor
+    from modaltrace.tracing.propagation import patch_all
+    from modaltrace.tracing.sampler import AdaptiveSampler
 
-    config = AvatarOtelConfig(**kwargs)
+    config = ModalTraceConfig(**kwargs)
     _registry._config = config
 
     resource = create_resource(config)
@@ -148,8 +148,8 @@ def init(**kwargs: Any) -> RTVideoOtelSDK:
     meter_provider = setup_meter_provider(config, resource)
     logger_provider = setup_logger_provider(config, resource)
 
-    tracer = tracer_provider.get_tracer("video-ai-telemetry", __version__)
-    meter = meter_provider.get_meter("video-ai-telemetry", __version__)
+    tracer = tracer_provider.get_tracer("modaltrace", __version__)
+    meter = meter_provider.get_meter("modaltrace", __version__)
     _registry._tracer = tracer
     _registry._meter = meter
 
@@ -162,7 +162,7 @@ def init(**kwargs: Any) -> RTVideoOtelSDK:
         )
         tracer_provider.add_span_processor(scrubber)
 
-    from video_ai_telemetry.exporters.setup import _create_span_exporter
+    from modaltrace.exporters.setup import _create_span_exporter
 
     pending_exporter = _create_span_exporter(config)
     pending_processor = PendingSpanProcessor(
@@ -229,7 +229,7 @@ def init(**kwargs: Any) -> RTVideoOtelSDK:
         log_console=config.log_console,
     )
 
-    sdk = RTVideoOtelSDK(
+    sdk = ModalTraceSDK(
         config=config,
         tracer_provider=tracer_provider,
         meter_provider=meter_provider,

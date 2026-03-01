@@ -1,4 +1,4 @@
-"""Structured log API for video-ai-telemetry.
+"""Structured log API for modaltrace.
 
 Provides module-level log functions (trace, debug, info, notice, warning, error, exception)
 that emit OTel log records with structured attributes. Each record automatically carries
@@ -58,7 +58,7 @@ _SEVERITY_MAP: dict[str, tuple[SeverityNumber, str]] = {
 # Module-level state
 # ---------------------------------------------------------------------------
 
-# Set by _init_logging() during video_ai_telemetry.init().  None = before init.
+# Set by _init_logging() during modaltrace.init().  None = before init.
 _logger: Logger | None = None
 _min_severity: SeverityNumber = SeverityNumber.INFO
 _log_console: bool = False
@@ -69,7 +69,7 @@ def _init_logging(
     log_level: str = "info",
     log_console: bool = False,
 ) -> None:
-    """Called once during video_ai_telemetry.init() to wire up the module-level logger.
+    """Called once during modaltrace.init() to wire up the module-level logger.
 
     Parameters
     ----------
@@ -85,7 +85,7 @@ def _init_logging(
 
     set_logger_provider(logger_provider)
     _logger = logger_provider.get_logger(
-        "video-ai-telemetry",
+        "modaltrace",
         schema_url="https://opentelemetry.io/schemas/1.24.0",
     )
     _min_severity = _LEVEL_MAP.get(log_level.lower(), SeverityNumber.INFO)
@@ -213,5 +213,5 @@ def exception(msg: str, **attrs: Any) -> None:
 
 
 # Expose trace under the name `trace` as well (avoids collision with the `trace`
-# module at the top level — callers use video_ai_telemetry.trace, not this module directly).
+# module at the top level — callers use modaltrace.trace, not this module directly).
 trace_log.__name__ = "trace"

@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from video_ai_telemetry.metrics.av_sync import AVSyncTracker
+from modaltrace.metrics.av_sync import AVSyncTracker
 
 
 @pytest.fixture
