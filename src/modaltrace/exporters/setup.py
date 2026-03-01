@@ -6,7 +6,7 @@ HTTP or gRPC exporters based on ModalTraceConfig.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from opentelemetry import trace
 from opentelemetry.sdk.resources import Resource
@@ -27,7 +27,9 @@ def create_resource(config: ModalTraceConfig) -> Resource:
     )
 
 
-def setup_tracer_provider(config: ModalTraceConfig, resource: Resource) -> tuple[TracerProvider, any]:
+def setup_tracer_provider(
+    config: ModalTraceConfig, resource: Resource
+) -> tuple[TracerProvider, Any]:
     provider = TracerProvider(resource=resource)
     exporter = _create_span_exporter(config)
     provider.add_span_processor(BatchSpanProcessor(exporter))
