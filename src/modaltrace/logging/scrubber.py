@@ -86,18 +86,23 @@ class ScrubbingSpanProcessor(SpanProcessor):
         if not hasattr(span, "_attributes") or span._attributes is None:
             return
 
-        for key, value in list(span._attributes.items()):
-            if not isinstance(value, str):
-                # Only string-valued attributes are scanned.
-                continue
+        try:
+            for key, value in list(span._attributes.items()):
+                if not isinstance(value, str):
+                    # Only string-valued attributes are scanned.
+                    continue
 
-            for pattern in self._compiled_patterns:
-                if pattern.search(key) or pattern.search(value):
-                    # Give the caller a chance to allow-list this attribute.
-                    if self._callback is not None and self._callback(key, value, pattern):
-                        continue
-                    span._attributes[key] = "[REDACTED]"
-                    break
+                for pattern in self._compiled_patterns:
+                    if pattern.search(key) or pattern.search(value):
+                        # Give the caller a chance to allow-list this attribute.
+                        if self._callback is not None and self._callback(key, value, pattern):
+                            continue
+                        span._attributes[key] = "[REDACTED]"
+                        break
+        except (TypeError, AttributeError):
+            # Attributes may be frozen/immutable in newer OTel SDK versions.
+            # Silently skip redaction if mutation fails.
+            pass
 
     def shutdown(self) -> None:
         """No-op — nothing to clean up."""

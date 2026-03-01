@@ -144,7 +144,7 @@ def init(**kwargs: Any) -> ModalTraceSDK:
     _registry._config = config
 
     resource = create_resource(config)
-    tracer_provider = setup_tracer_provider(config, resource)
+    tracer_provider, span_exporter = setup_tracer_provider(config, resource)
     meter_provider = setup_meter_provider(config, resource)
     logger_provider = setup_logger_provider(config, resource)
 
@@ -162,11 +162,8 @@ def init(**kwargs: Any) -> ModalTraceSDK:
         )
         tracer_provider.add_span_processor(scrubber)
 
-    from modaltrace.exporters.setup import _create_span_exporter
-
-    pending_exporter = _create_span_exporter(config)
     pending_processor = PendingSpanProcessor(
-        exporter=pending_exporter,
+        exporter=span_exporter,
         flush_interval_ms=config.pending_span_flush_interval_ms,
     )
     tracer_provider.add_span_processor(pending_processor)

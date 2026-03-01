@@ -8,10 +8,13 @@ flushes aggregated samples to OTel histograms at a configurable interval.
 from __future__ import annotations
 
 import array
+import logging
 import threading
 from dataclasses import dataclass, field
 
 from modaltrace.metrics.instruments import MetricInstruments
+
+logger = logging.getLogger("modaltrace.aggregator")
 
 
 @dataclass
@@ -101,7 +104,10 @@ class FrameMetricsAggregator:
 
     def _flush_loop(self) -> None:
         while not self._stop_event.wait(timeout=self._flush_interval_s):
-            self._flush()
+            try:
+                self._flush()
+            except Exception as exc:
+                logger.exception("Metrics flush failed: %s", exc)
 
     def _flush(self) -> None:
         with self._lock:
