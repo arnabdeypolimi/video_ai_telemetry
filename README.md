@@ -5,11 +5,11 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PyPI version](https://img.shields.io/pypi/v/modaltrace.svg)](https://pypi.org/project/modaltrace/)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue)](https://www.python.org/downloads/)
-[![CI Status](https://github.com/arnabdeypolimi/video-ai-telemetry/actions/workflows/ci.yml/badge.svg)](https://github.com/arnabdeypolimi/video-ai-telemetry/actions)
+[![CI Status](https://github.com/arnabdeypolimi/video_ai_telemetry/actions/workflows/ci.yml/badge.svg)](https://github.com/arnabdeypolimi/video_ai_telemetry/actions)
 
 **OpenTelemetry observability for real-time AI video applications**
 
-[Documentation](https://github.com/arnabdeypolimi/video-ai-telemetry/wiki) • [Issues](https://github.com/arnabdeypolimi/video-ai-telemetry/issues) • [Contributing](./CONTRIBUTING.md)
+[Docs](./docs/) • [API Reference](./docs/API.md) • [Examples](./docs/EXAMPLES.md) • [Issues](https://github.com/arnabdeypolimi/video_ai_telemetry/issues) • [Contributing](./CONTRIBUTING.md)
 
 </div>
 
@@ -174,8 +174,8 @@ modaltrace/
 ### Setup
 
 ```bash
-git clone https://github.com/arnabdeypolimi/video-ai-telemetry.git
-cd video-ai-telemetry
+git clone https://github.com/arnabdeypolimi/video_ai_telemetry.git
+cd video_ai_telemetry
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -e ".[dev,all]"
@@ -206,7 +206,7 @@ mypy src/
 
 Contributions are welcome! Please:
 
-1. Open an [issue](https://github.com/arnabdeypolimi/video-ai-telemetry/issues) to discuss changes
+1. Open an [issue](https://github.com/arnabdeypolimi/video_ai_telemetry/issues) to discuss changes
 2. Fork the repository and create a feature branch
 3. Submit a pull request with tests for new functionality
 4. Ensure all tests pass and code is linted
@@ -221,4 +221,4 @@ ModalTrace is licensed under the Apache License 2.0. See [LICENSE](./LICENSE) fo
 
 ---
 
-**Questions?** Open an [issue](https://github.com/arnabdeypolimi/video-ai-telemetry/issues) or check the [documentation](https://github.com/arnabdeypolimi/video-ai-telemetry/wiki).
+**Questions?** Check the [documentation](./docs/), review [API reference](./docs/API.md), or open an [issue](https://github.com/arnabdeypolimi/video_ai_telemetry/issues).
