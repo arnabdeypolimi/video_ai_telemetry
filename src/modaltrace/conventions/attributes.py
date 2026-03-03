@@ -43,6 +43,7 @@ class AVSyncAttributes:
 
 class GPUAttributes:
     DEVICE_INDEX = "modaltrace.gpu.device_index"
+    DEVICE_NAME = "modaltrace.gpu.device_name"
     UTILIZATION_PCT = "modaltrace.gpu.utilization"
     MEMORY_USED_MB = "modaltrace.gpu.memory.used"
     MEMORY_FREE_MB = "modaltrace.gpu.memory.free"

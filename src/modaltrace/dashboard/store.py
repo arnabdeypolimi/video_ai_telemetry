@@ -87,6 +87,11 @@ class TelemetryStore:
             # Store latest value for each metric
             gpu_data[device_id][metric_name] = point.get("value")
 
+            # Capture device name from attributes (present on all GPU metrics)
+            device_name = point.get("attributes", {}).get("modaltrace.gpu.device_name")
+            if device_name and "device_name" not in gpu_data[device_id]:
+                gpu_data[device_id]["device_name"] = device_name
+
         return gpu_data
 
     def get_logs(

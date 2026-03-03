@@ -23,6 +23,7 @@ class GPUReading:
     """Snapshot of GPU metrics for a single device."""
 
     device_index: int = 0
+    device_name: str = ""
     utilization_pct: float = 0.0
     memory_utilization_pct: float = 0.0
     memory_used_mb: float = 0.0
@@ -110,6 +111,11 @@ class GPUMonitor:
             reading = GPUReading(device_index=idx)
 
             try:
+                reading.device_name = pynvml.nvmlDeviceGetName(handle)
+            except Exception:
+                pass
+
+            try:
                 util = pynvml.nvmlDeviceGetUtilizationRates(handle)
                 reading.utilization_pct = float(util.gpu)
                 reading.memory_utilization_pct = float(util.memory)
@@ -148,10 +154,10 @@ class GPUMonitor:
             def callback(options):
                 readings = self.get_readings()
                 for r in readings:
-                    yield Observation(
-                        getattr(r, attr_name),
-                        {GPUAttributes.DEVICE_INDEX: r.device_index},
-                    )
+                    attrs = {GPUAttributes.DEVICE_INDEX: r.device_index}
+                    if r.device_name:
+                        attrs[GPUAttributes.DEVICE_NAME] = r.device_name
+                    yield Observation(getattr(r, attr_name), attrs)
 
             return callback
 

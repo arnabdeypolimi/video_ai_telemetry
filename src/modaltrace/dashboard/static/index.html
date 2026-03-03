@@ -470,6 +470,27 @@
             color: var(--color-accent-cyan);
         }
 
+        /* Log attributes */
+        .log-attrs {
+            margin-top: var(--space-1);
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-1);
+        }
+
+        .log-attr {
+            font-size: 11px;
+            color: var(--color-text-secondary);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px var(--space-2);
+            border-radius: 4px;
+        }
+
+        .log-attr-key {
+            color: var(--color-accent-cyan);
+            opacity: 0.8;
+        }
+
         /* Utilities */
         .hidden {
             display: none !important;
@@ -609,16 +630,18 @@
         let sessionStartTime = Date.now();
         let pipelineChart = null;
         let gpuSparklines = {};
+        let gpuHistories = {};  // { deviceId: [util%, ...] } rolling 30-point history
         let currentLogLevel = "";
 
         // Stat box configuration
         const statBoxes = [
-            { id: "fps", label: "FPS", metric: "frames", default: "0.0" },
-            { id: "inferenceP95", label: "Inference P95", metric: "inference", default: "— ms" },
-            { id: "renderP95", label: "Render P95", metric: "render", default: "— ms" },
-            { id: "encodeP95", label: "Encode P95", metric: "encode", default: "— ms" },
-            { id: "dropped", label: "Dropped", metric: "dropped", default: "0" },
-            { id: "avDrift", label: "A/V Drift", metric: "drift", default: "— ms" },
+            { id: "fps", label: "FPS", default: "0.0" },
+            { id: "inferenceP95", label: "Inference P95", default: "— ms" },
+            { id: "renderP95", label: "Render P95", default: "— ms" },
+            { id: "encodeP95", label: "Encode P95", default: "— ms" },
+            { id: "dropped", label: "Dropped", default: "0" },
+            { id: "avDrift", label: "A/V Drift", default: "— ms" },
+            { id: "avJitter", label: "A/V Jitter", default: "— ms" },
         ];
 
         // Initialize stat boxes
@@ -664,17 +687,26 @@
                 const now = Date.now();
                 const last60s = now - 60000;
 
-                const [spans, pipelineMetrics, gpuData, logs, droppedFrames, avDrift] = await Promise.all([
+                const [
+                    spans, pipelineMetrics,
+                    inferenceMetrics, renderMetrics, encodeMetrics,
+                    gpuData, logs, droppedFrames, avDrift, avJitter
+                ] = await Promise.all([
                     fetch("/api/spans?limit=50").then(r => r.json()),
                     fetch(`/api/metrics/modaltrace.pipeline.stage.duration?since_ms=${last60s}`).then(r => r.json()),
+                    // Dedicated stage metrics (from FrameMetricsAggregator.record())
+                    fetch(`/api/metrics/modaltrace.inference.forward_pass.duration?since_ms=${last60s}`).then(r => r.json()).catch(() => []),
+                    fetch(`/api/metrics/modaltrace.render.frame.duration?since_ms=${last60s}`).then(r => r.json()).catch(() => []),
+                    fetch(`/api/metrics/modaltrace.encode.frame.duration?since_ms=${last60s}`).then(r => r.json()).catch(() => []),
                     fetch("/api/gpu").then(r => r.json()),
                     fetch("/api/logs?limit=100").then(r => r.json()),
                     fetch("/api/metrics/modaltrace.frames.dropped").then(r => r.json()).catch(() => []),
                     fetch("/api/metrics/modaltrace.av_sync.drift").then(r => r.json()).catch(() => []),
+                    fetch("/api/metrics/modaltrace.av_sync.jitter").then(r => r.json()).catch(() => []),
                 ]);
 
-                updateStats(spans, pipelineMetrics, droppedFrames, avDrift);
-                updatePipelineChart(pipelineMetrics);
+                updateStats(spans, pipelineMetrics, inferenceMetrics, renderMetrics, encodeMetrics, droppedFrames, avDrift, avJitter);
+                updatePipelineChart(pipelineMetrics, inferenceMetrics, renderMetrics, encodeMetrics);
                 updateGPU(gpuData);
                 updateTraces(spans);
                 updateLogs(logs);
@@ -684,7 +716,7 @@
         }
 
         // Update stats
-        function updateStats(spans, pipelineMetrics, droppedFrames, avDrift) {
+        function updateStats(spans, pipelineMetrics, inferenceMetrics, renderMetrics, encodeMetrics, droppedFrames, avDrift, avJitter) {
             // Service name from first span
             if (spans.length > 0) {
                 const serviceName = spans[0].service_name || "unknown";
@@ -700,15 +732,10 @@
                 document.getElementById("stat-fps").textContent = fps;
             }
 
-            // Extract P95 latencies by pipeline stage from metrics
-            const stageLatencies = {
-                inference: null,
-                render: null,
-                encode: null
-            };
+            // Extract P95 latencies by pipeline stage from modaltrace.pipeline.stage.duration
+            const stageLatencies = { inference: null, render: null, encode: null };
 
             if (pipelineMetrics.length > 0) {
-                // Group by stage and get latest P95 for each
                 const byStage = {};
                 pipelineMetrics.forEach(m => {
                     const stage = m.attributes?.["modaltrace.pipeline.stage"] || "unknown";
@@ -716,45 +743,64 @@
                         byStage[stage] = m;
                     }
                 });
-
-                // Map stage names to stat IDs
-                if (byStage["inference"] && byStage["inference"].percentiles) {
-                    stageLatencies.inference = byStage["inference"].percentiles.p95;
-                }
-                if (byStage["render"] && byStage["render"].percentiles) {
-                    stageLatencies.render = byStage["render"].percentiles.p95;
-                }
-                if (byStage["encode"] && byStage["encode"].percentiles) {
-                    stageLatencies.encode = byStage["encode"].percentiles.p95;
-                }
+                if (byStage["inference"]?.percentiles) stageLatencies.inference = byStage["inference"].percentiles.p95;
+                if (byStage["render"]?.percentiles) stageLatencies.render = byStage["render"].percentiles.p95;
+                if (byStage["encode"]?.percentiles) stageLatencies.encode = byStage["encode"].percentiles.p95;
             }
 
-            document.getElementById("stat-inferenceP95").textContent =
-                stageLatencies.inference ? `${stageLatencies.inference.toFixed(1)} ms` : "— ms";
-            document.getElementById("stat-renderP95").textContent =
-                stageLatencies.render ? `${stageLatencies.render.toFixed(1)} ms` : "— ms";
-            document.getElementById("stat-encodeP95").textContent =
-                stageLatencies.encode ? `${stageLatencies.encode.toFixed(1)} ms` : "— ms";
+            // Fallback: dedicated metrics from FrameMetricsAggregator.record()
+            // These are used when @pipeline_stage() decorator is not in use
+            if (stageLatencies.inference === null && inferenceMetrics.length > 0) {
+                const latest = inferenceMetrics[inferenceMetrics.length - 1];
+                stageLatencies.inference = latest.percentiles?.p95 ?? null;
+            }
+            if (stageLatencies.render === null && renderMetrics.length > 0) {
+                const latest = renderMetrics[renderMetrics.length - 1];
+                stageLatencies.render = latest.percentiles?.p95 ?? null;
+            }
+            if (stageLatencies.encode === null && encodeMetrics.length > 0) {
+                const latest = encodeMetrics[encodeMetrics.length - 1];
+                stageLatencies.encode = latest.percentiles?.p95 ?? null;
+            }
 
-            // Dropped frames: latest value
+            // Use !== null so that a real 0.0ms value is shown correctly
+            document.getElementById("stat-inferenceP95").textContent =
+                stageLatencies.inference !== null ? `${stageLatencies.inference.toFixed(1)} ms` : "— ms";
+            document.getElementById("stat-renderP95").textContent =
+                stageLatencies.render !== null ? `${stageLatencies.render.toFixed(1)} ms` : "— ms";
+            document.getElementById("stat-encodeP95").textContent =
+                stageLatencies.encode !== null ? `${stageLatencies.encode.toFixed(1)} ms` : "— ms";
+
+            // Dropped frames: latest counter value
             if (droppedFrames.length > 0) {
                 const latest = droppedFrames[droppedFrames.length - 1];
-                document.getElementById("stat-dropped").textContent = latest.value || "0";
+                document.getElementById("stat-dropped").textContent = latest.value ?? "0";
             }
 
-            // A/V Drift: latest value
+            // A/V Drift: use P50 (median) — .value is the histogram sum, not a meaningful drift
             if (avDrift.length > 0) {
                 const latest = avDrift[avDrift.length - 1];
+                const driftVal = latest.percentiles?.p50 ?? null;
                 document.getElementById("stat-avDrift").textContent =
-                    latest.value ? `${latest.value.toFixed(1)} ms` : "— ms";
+                    driftVal !== null ? `${driftVal.toFixed(1)} ms` : "— ms";
+            }
+
+            // A/V Jitter: P50 of the jitter histogram
+            if (avJitter.length > 0) {
+                const latest = avJitter[avJitter.length - 1];
+                const jitterVal = latest.percentiles?.p50 ?? null;
+                document.getElementById("stat-avJitter").textContent =
+                    jitterVal !== null ? `${jitterVal.toFixed(1)} ms` : "— ms";
             }
         }
 
         // Initialize and update pipeline chart
-        function updatePipelineChart(metrics) {
-            if (!metrics || metrics.length === 0) {
-                return;
-            }
+        function updatePipelineChart(metrics, inferenceMetrics, renderMetrics, encodeMetrics) {
+            const hasAnyData = (metrics && metrics.length > 0) ||
+                (inferenceMetrics && inferenceMetrics.length > 0) ||
+                (renderMetrics && renderMetrics.length > 0) ||
+                (encodeMetrics && encodeMetrics.length > 0);
+            if (!hasAnyData) return;
 
             const ctx = document.getElementById("pipelineChart");
             if (!ctx) return;
@@ -763,16 +809,32 @@
             const stages = {};
             const allTimes = new Set();
 
-            metrics.forEach(m => {
-                const stage = m.attributes?.["modaltrace.pipeline.stage"] || "unknown";
-                const timestamp = m.timestamp_ms;
+            if (metrics && metrics.length > 0) {
+                metrics.forEach(m => {
+                    const stage = m.attributes?.["modaltrace.pipeline.stage"] || "unknown";
+                    const timestamp = m.timestamp_ms;
+                    if (!stages[stage]) stages[stage] = {};
+                    stages[stage][timestamp] = m.percentiles?.p95 ?? null;
+                    allTimes.add(timestamp);
+                });
+            }
 
-                if (!stages[stage]) {
-                    stages[stage] = {};
-                }
-                stages[stage][timestamp] = m.percentiles?.p95 || null;
-                allTimes.add(timestamp);
-            });
+            // Add dedicated metric series as fallback for stages with no pipeline.stage.duration data
+            const dedicatedSources = [
+                { data: inferenceMetrics, stage: "inference" },
+                { data: renderMetrics, stage: "render" },
+                { data: encodeMetrics, stage: "encode" },
+            ];
+            for (const { data: dMetrics, stage } of dedicatedSources) {
+                if (stages[stage] || !dMetrics || dMetrics.length === 0) continue;
+                stages[stage] = {};
+                dMetrics.forEach(m => {
+                    stages[stage][m.timestamp_ms] = m.percentiles?.p95 ?? null;
+                    allTimes.add(m.timestamp_ms);
+                });
+            }
+
+            if (Object.keys(stages).length === 0) return;
 
             // Sort timestamps to build labels
             const sortedTimes = Array.from(allTimes).sort((a, b) => a - b);
@@ -866,16 +928,23 @@
             gpuCards.innerHTML = "";
 
             Object.entries(gpuData).forEach(([deviceId, metrics]) => {
-                // Safe metric extraction with fallbacks
+                // Utilization: NVML returns 0-100 (percent), not 0-1
                 const util = metrics["modaltrace.gpu.utilization"] ?? 0;
-                const memUsed = metrics["modaltrace.gpu.memory.used"] ?? 0;
-                const memTotal = metrics["modaltrace.gpu.memory.total"] ?? 24;
+                // Memory: stored in MB from NVML, convert to GB for display
+                const memUsedMB = metrics["modaltrace.gpu.memory.used"] ?? 0;
+                const memTotalMB = metrics["modaltrace.gpu.memory.total"] ?? 0;
+                const memUsedGB = (memUsedMB / 1024).toFixed(1);
+                const memTotalGB = memTotalMB > 0 ? (memTotalMB / 1024).toFixed(0) : "?";
+                const memPercent = memTotalMB > 0 ? (memUsedMB / memTotalMB) * 100 : 0;
                 const temp = metrics["modaltrace.gpu.temperature"] ?? 0;
                 const power = metrics["modaltrace.gpu.power.draw"] ?? 0;
-                const memPercent = memTotal > 0 ? (memUsed / memTotal) * 100 : 0;
+                // Device name stored by store.py from gpu metric attributes
+                const deviceName = metrics["device_name"] || "NVIDIA GPU";
 
-                // Get device name if available
-                const deviceName = metrics["modaltrace.gpu.device_name"] || "NVIDIA GPU";
+                // Accumulate utilization history for sparkline (rolling 30 readings)
+                if (!gpuHistories[deviceId]) gpuHistories[deviceId] = [];
+                gpuHistories[deviceId].push(util);
+                if (gpuHistories[deviceId].length > 30) gpuHistories[deviceId].shift();
 
                 const card = document.createElement("div");
                 card.className = "gpu-card";
@@ -883,16 +952,16 @@
                     <div class="gpu-card-title">GPU ${deviceId} — ${deviceName}</div>
                     <div class="gpu-metric">
                         <div class="gpu-metric-label">Utilization</div>
-                        <div class="gpu-metric-value">${(util * 100).toFixed(1)}%</div>
+                        <div class="gpu-metric-value">${util.toFixed(1)}%</div>
                         <div class="gpu-bar">
-                            <div class="gpu-bar-fill" style="width: ${util * 100}%"></div>
+                            <div class="gpu-bar-fill" style="width: ${Math.min(util, 100).toFixed(1)}%"></div>
                         </div>
                     </div>
                     <div class="gpu-metric">
                         <div class="gpu-metric-label">Memory</div>
-                        <div class="gpu-metric-value">${memUsed.toFixed(1)}/${memTotal.toFixed(0)} GB</div>
+                        <div class="gpu-metric-value">${memUsedGB}/${memTotalGB} GB</div>
                         <div class="gpu-bar">
-                            <div class="gpu-bar-fill" style="width: ${memPercent.toFixed(1)}%"></div>
+                            <div class="gpu-bar-fill" style="width: ${Math.min(memPercent, 100).toFixed(1)}%"></div>
                         </div>
                     </div>
                     <div class="gpu-badges">
@@ -905,18 +974,19 @@
                 `;
                 gpuCards.appendChild(card);
 
-                // Create sparkline (simple line chart)
+                // Sparkline uses accumulated history so trend is visible over time
                 const sparklineCtx = document.getElementById(`sparkline-${deviceId}`);
                 if (sparklineCtx) {
                     if (gpuSparklines[deviceId]) {
                         gpuSparklines[deviceId].destroy();
                     }
+                    const history = gpuHistories[deviceId];
                     gpuSparklines[deviceId] = new Chart(sparklineCtx, {
                         type: "line",
                         data: {
-                            labels: Array.from({ length: 10 }, (_, i) => i),
+                            labels: Array.from({ length: history.length }, (_, i) => i),
                             datasets: [{
-                                data: Array(10).fill(util * 100),
+                                data: history,
                                 borderColor: "#00d4ff",
                                 backgroundColor: "rgba(0, 212, 255, 0.1)",
                                 fill: true,
@@ -985,10 +1055,10 @@
             const container = document.getElementById("logsContainer");
             const filtered = currentLogLevel ? logs.filter(l => l.severity === currentLogLevel) : logs;
 
-            // Sort logs newest first, limit to 100
+            // Sort oldest first so newest entries appear at the bottom (like a terminal)
             const sortedLogs = filtered
-                .sort((a, b) => (b.timestamp_ms || 0) - (a.timestamp_ms || 0))
-                .slice(0, 100);
+                .sort((a, b) => (a.timestamp_ms || 0) - (b.timestamp_ms || 0))
+                .slice(-100);
 
             container.innerHTML = sortedLogs
                 .map(log => {
@@ -997,18 +1067,25 @@
                         `.${String(Math.floor(((log.timestamp_ms || 0) % 1000) / 10)).padStart(2, "0")}`;
                     const severity = log.severity || "INFO";
                     const message = log.body || "(empty message)";
+                    const attrs = log.attributes || {};
+                    const attrEntries = Object.entries(attrs);
+                    const attrsHtml = attrEntries.length > 0
+                        ? `<div class="log-attrs">${attrEntries.map(([k, v]) =>
+                            `<span class="log-attr"><span class="log-attr-key">${k}</span>=${v}</span>`
+                        ).join("")}</div>`
+                        : "";
 
                     return `
                         <div class="log-entry ${severity}">
                             <div class="log-time">${timeStr}</div>
                             <div class="log-severity">${severity}</div>
-                            <div class="log-message">${message}</div>
+                            <div class="log-message">${message}${attrsHtml}</div>
                         </div>
                     `;
                 })
                 .join("");
 
-            // Auto-scroll to bottom
+            // Scroll to bottom so newest entries are visible
             container.scrollTop = container.scrollHeight;
         }
 
