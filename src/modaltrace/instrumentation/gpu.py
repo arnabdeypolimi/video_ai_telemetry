@@ -11,6 +11,8 @@ import threading
 from dataclasses import dataclass
 from typing import Any
 
+from opentelemetry.metrics import Observation
+
 from modaltrace.conventions.attributes import GPUAttributes
 
 logger = logging.getLogger("modaltrace.gpu")
@@ -146,7 +148,7 @@ class GPUMonitor:
             def callback(options):
                 readings = self.get_readings()
                 for r in readings:
-                    yield (
+                    yield Observation(
                         getattr(r, attr_name),
                         {GPUAttributes.DEVICE_INDEX: r.device_index},
                     )
