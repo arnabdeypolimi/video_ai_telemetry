@@ -45,6 +45,9 @@ Built-in scrubbing pipeline removes sensitive data from logs and attributes.
 📡 **OpenTelemetry Export**
 Native support for OTLP over HTTP and gRPC.
 
+📊 **Built-in Dashboard**
+Real-time telemetry visualization for local development (optional).
+
 ## Installation
 
 ```bash
@@ -54,7 +57,11 @@ pip install modaltrace
 For optional features:
 
 ```bash
-pip install modaltrace[pytorch,gpu,webrtc]
+# Install with dashboard for local development
+pip install modaltrace[dashboard]
+
+# Or install all features
+pip install modaltrace[all]
 ```
 
 ## Quick Start

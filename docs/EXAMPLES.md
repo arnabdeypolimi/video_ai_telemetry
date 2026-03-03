@@ -497,6 +497,103 @@ if __name__ == "__main__":
         sdk.shutdown()
 ```
 
+## Dashboard Integration
+
+### Launch the Built-in Dashboard
+
+For local development, use the built-in dashboard to visualize telemetry in real-time:
+
+```python
+from modaltrace import ModalTraceSDK, ModalTraceConfig, get_tracer
+from modaltrace.dashboard import DashboardServer
+
+# Start the dashboard server
+# - Dashboard UI: http://localhost:8000
+# - OTLP receiver: http://localhost:4318
+dashboard = DashboardServer()
+dashboard.start()
+
+# Configure SDK to send to dashboard
+config = ModalTraceConfig(
+    service_name="my-pipeline",
+    otlp_endpoint="http://localhost:4318",
+    pytorch_instrumentation=True,
+    gpu_monitoring=True,
+)
+
+sdk = ModalTraceSDK(config)
+sdk.start()
+
+tracer = get_tracer(__name__)
+
+# Your telemetry is now visible at http://localhost:8000
+with tracer.start_as_current_span("main") as span:
+    span.set_attribute("modaltrace.pipeline.frame.sequence_number", 0)
+    # Your code here
+```
+
+### Dashboard Features
+
+The dashboard provides real-time visualization of:
+
+- **Stats Panel**: FPS, Inference/Render/Encode P95 latencies, dropped frames, A/V drift
+- **Pipeline Chart**: Multi-stage latency trends over 60 seconds
+- **GPU Metrics**: Device utilization, memory usage, temperature, power consumption
+- **Trace Explorer**: Browse 50 recent spans with expandable attributes
+- **Log Viewer**: Search 100 recent logs with severity filtering
+
+### Configure Dashboard Telemetry
+
+For the dashboard to display all metrics properly, ensure your telemetry includes:
+
+```python
+from modaltrace import get_tracer, get_meter
+from modaltrace.conventions.attributes import PipelineAttributes
+
+tracer = get_tracer(__name__)
+meter = get_meter(__name__)
+
+# Create metrics the dashboard expects
+pipeline_latency = meter.create_histogram(
+    "modaltrace.pipeline.stage.duration",
+    unit="ms",
+    description="Pipeline stage latency"
+)
+
+dropped_frames = meter.create_counter(
+    "modaltrace.frames.dropped",
+    description="Frames dropped"
+)
+
+av_drift = meter.create_gauge(
+    "modaltrace.av_sync.drift",
+    unit="ms",
+    description="Audio/Video sync drift"
+)
+
+def process_frame(frame_id, frame_data):
+    with tracer.start_as_current_span("process_frame") as span:
+        span.set_attribute(PipelineAttributes.FRAME_SEQ, frame_id)
+
+        # Inference stage
+        import time
+        start = time.time()
+        result = model(frame_data)
+        latency = (time.time() - start) * 1000
+
+        # Record stage latency with stage attribute
+        pipeline_latency.record(
+            latency,
+            attributes={"modaltrace.pipeline.stage": "inference"}
+        )
+
+        # Record other metrics
+        dropped_frames.add(0)  # or 1 if frame was dropped
+        av_drift.set(2.5)  # milliseconds
+
+        return result
+```
+
 ---
 
 For more detailed API reference, see [API.md](./API.md)

@@ -45,6 +45,77 @@ ModalTrace is an OpenTelemetry-based observability library designed for real-tim
           └──────────────────────┘
 ```
 
+## Dashboard (Optional Component)
+
+The ModalTrace project includes an optional real-time dashboard for local development and monitoring. This is a FastAPI-based web application that receives OTLP telemetry data and visualizes it in real-time.
+
+### Dashboard Architecture
+
+```
+┌──────────────────────────────┐
+│    OTLP Telemetry Data       │
+│  (Traces, Metrics, Logs)     │
+└──────────────────────────────┘
+                │
+                ▼
+┌──────────────────────────────┐
+│   FastAPI Server             │
+│  (/v1/traces, /v1/metrics,   │
+│   /v1/logs, /api/*)          │
+└──────────────────────────────┘
+                │
+    ┌───────────┼───────────┐
+    ▼           ▼           ▼
+ Spans       Metrics      Logs
+  Store       Store       Store
+    │           │           │
+    └───────────┼───────────┘
+                │
+                ▼
+┌──────────────────────────────┐
+│   API Endpoints              │
+│  - /api/spans                │
+│  - /api/metrics/{name}       │
+│  - /api/gpu                  │
+│  - /api/logs                 │
+└──────────────────────────────┘
+                │
+                ▼
+┌──────────────────────────────┐
+│   Single-Page HTML/JS App    │
+│   (src/dashboard/static/)    │
+│  - Stats Panel               │
+│  - Pipeline Chart            │
+│  - GPU Metrics               │
+│  - Trace Table               │
+│  - Log Viewer                │
+└──────────────────────────────┘
+```
+
+### Dashboard Components
+
+**Files:**
+- `src/modaltrace/dashboard/server.py` - FastAPI OTLP receiver and API endpoints
+- `src/modaltrace/dashboard/store.py` - Ring buffer storage for telemetry data
+- `src/modaltrace/dashboard/proto_parser.py` - OTLP protobuf parsing
+- `src/modaltrace/dashboard/static/index.html` - Frontend UI
+- `src/modaltrace/dashboard/__main__.py` - CLI launcher
+
+**Features:**
+- Real-time telemetry visualization (updates every 2 seconds)
+- Multi-stage pipeline latency chart with per-stage metrics
+- GPU metrics dashboard (utilization, memory, temperature, power)
+- Trace explorer with expandable attributes
+- Structured log viewer with severity filtering
+- Responsive dark theme UI (dark AI aesthetic)
+
+**Data Flow:**
+1. Application sends OTLP data to dashboard endpoint (port 4318 by default)
+2. Dashboard receives and parses protobuf messages
+3. Data stored in ring buffers (max 2000 spans, 10000 metrics, 5000 logs)
+4. Frontend polls API endpoints every 2 seconds
+5. Charts and tables updated with latest telemetry
+
 ## Core Components
 
 ### 1. Configuration (`config.py`)

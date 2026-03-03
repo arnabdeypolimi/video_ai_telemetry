@@ -20,6 +20,9 @@ pip install modaltrace[gpu]
 # WebRTC monitoring
 pip install modaltrace[webrtc]
 
+# Built-in dashboard (local development)
+pip install modaltrace[dashboard]
+
 # All features
 pip install modaltrace[all]
 ```
@@ -105,9 +108,43 @@ error("Processing failed", error_code=500)
 warning("High latency detected", latency_ms=150)
 ```
 
-## Running with OpenTelemetry Backend
+## Viewing Telemetry
 
-### Option 1: Local Jaeger (Recommended for Testing)
+### Option 1: ModalTrace Built-in Dashboard (Recommended for Local Development)
+
+Launch the dashboard server:
+
+```python
+from modaltrace import ModalTraceSDK, ModalTraceConfig
+from modaltrace.dashboard import DashboardServer
+
+# Start dashboard
+dashboard = DashboardServer()
+dashboard.start()  # http://localhost:8000
+
+# Configure SDK to send telemetry to dashboard
+config = ModalTraceConfig(
+    service_name="my-pipeline",
+    otlp_endpoint="http://localhost:4318",
+    pytorch_instrumentation=True,
+    gpu_monitoring=True,
+)
+
+sdk = ModalTraceSDK(config)
+sdk.start()
+
+# Your code here...
+# Open http://localhost:8000 to see real-time telemetry
+```
+
+The dashboard displays:
+- **Stats Panel**: FPS, latency percentiles, GPU metrics, A/V drift
+- **Pipeline Chart**: Multi-stage latency trends
+- **GPU Metrics**: Device utilization, memory, temperature, power
+- **Trace Explorer**: Recent spans with expandable attributes
+- **Log Viewer**: Structured logs with severity filtering
+
+### Option 2: OpenTelemetry Backend (Recommended for Production)
 
 ```bash
 # Start Jaeger with Docker

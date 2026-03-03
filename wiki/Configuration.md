@@ -239,6 +239,40 @@ ModalTrace can be configured in three ways (in order of precedence):
 - **Description:** Event loop lag threshold
 - **Unit:** milliseconds
 
+## Dashboard Configuration (Optional)
+
+The built-in dashboard can be launched for local development and real-time telemetry visualization.
+
+### dashboard_port
+- **Env Var:** `MODALTRACE_DASHBOARD_PORT`
+- **Default:** `8000`
+- **Description:** Port for dashboard web UI
+- **Note:** OTLP receiver listens on port 4318
+
+### Dashboard with SDK
+
+```python
+from modaltrace import ModalTraceSDK, ModalTraceConfig
+from modaltrace.dashboard import DashboardServer
+
+# Start dashboard
+dashboard = DashboardServer()
+dashboard.start()
+
+# Configure SDK to send to dashboard
+config = ModalTraceConfig(
+    service_name="my-pipeline",
+    otlp_endpoint="http://localhost:4318",  # Send to dashboard
+    pytorch_instrumentation=True,
+    gpu_monitoring=True,
+)
+
+sdk = ModalTraceSDK(config)
+sdk.start()
+
+# View at http://localhost:8000
+```
+
 ## Configuration Examples
 
 ### Production Setup
@@ -263,7 +297,32 @@ sdk = ModalTraceSDK(config)
 sdk.start()
 ```
 
-### Development Setup
+### Development Setup with Dashboard
+
+```python
+from modaltrace import ModalTraceSDK, ModalTraceConfig
+from modaltrace.dashboard import DashboardServer
+
+# Start dashboard server
+dashboard = DashboardServer()
+dashboard.start()  # http://localhost:8000
+
+# Configure to send to dashboard
+config = ModalTraceConfig(
+    service_name="video-pipeline-dev",
+    deployment_environment="development",
+    otlp_endpoint="http://localhost:4318",  # Dashboard receiver
+    pytorch_instrumentation=True,
+    gpu_monitoring=True,
+    pytorch_sample_rate=1.0,  # Sample everything
+    log_level="debug",
+)
+
+sdk = ModalTraceSDK(config)
+sdk.start()
+```
+
+### Development Setup with External Backend
 
 ```python
 from modaltrace import ModalTraceSDK, ModalTraceConfig
@@ -273,7 +332,7 @@ config = ModalTraceConfig(
     deployment_environment="development",
     otlp_endpoint="http://localhost:4318",  # Local Jaeger
     pytorch_instrumentation=True,
-    gpu_monitoring=False,  # Save resources
+    gpu_monitoring=True,
     pytorch_sample_rate=1.0,  # Sample everything
     log_level="debug",
 )
