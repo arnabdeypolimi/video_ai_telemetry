@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ModalTrace Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Design Tokens */
+        :root {
+            /* Primary brand colors */
+            --color-bg-primary: #080808;
+            --color-bg-secondary: rgba(255, 255, 255, 0.04);
+            --color-border: rgba(255, 255, 255, 0.08);
+            --color-border-hover: rgba(255, 255, 255, 0.12);
+
+            /* Text colors */
+            --color-text-primary: #ffffff;
+            --color-text-secondary: #888888;
+            --color-text-tertiary: #555555;
+
+            /* Accent colors */
+            --color-accent-cyan: #00d4ff;
+            --color-accent-purple: #a855f7;
+            --color-accent-green: #22c55e;
+            --color-accent-amber: #f59e0b;
+            --color-accent-red: #ef4444;
+
+            /* Semantic tokens */
+            --color-status-ok: #22c55e;
+            --color-status-warn: #f59e0b;
+            --color-status-error: #ef4444;
+
+            /* Glassmorphism */
+            --backdrop-blur: blur(12px);
+            --surface-glow: 0 0 20px rgba(0, 212, 255, 0.1);
+
+            /* Typography scale */
+            --text-xs: 12px;
+            --text-sm: 14px;
+            --text-base: 16px;
+            --text-lg: 18px;
+            --text-xl: 20px;
+            --text-2xl: 24px;
+            --text-3xl: 32px;
+
+            /* Spacing (4px base unit) */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-6: 24px;
+            --space-8: 32px;
+            --space-10: 40px;
+        }
+
+        /* Global reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            font-size: var(--text-base);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-6);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-6) var(--space-8);
+            background: var(--color-bg-secondary);
+            border-bottom: 1px solid var(--color-border);
+            backdrop-filter: var(--backdrop-blur);
+            margin-bottom: var(--space-6);
+            border-radius: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+
+        .header-title {
+            font-size: var(--text-xl);
+            font-weight: 600;
+            color: var(--color-text-primary);
+        }
+
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-size: var(--text-sm);
+            color: var(--color-accent-cyan);
+        }
+
+        .live-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--color-accent-cyan);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .header-right {
+            display: flex;
+            gap: var(--space-8);
+            align-items: center;
+            font-size: var(--text-sm);
+        }
+
+        .header-info {
+            color: var(--color-text-secondary);
+        }
+
+        .header-info strong {
+            color: var(--color-text-primary);
+        }
+
+        .session-uptime {
+            color: var(--color-text-secondary);
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-6);
+        }
+
+        .stat-box {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-left: 3px solid var(--color-accent-cyan);
+            border-radius: 8px;
+            padding: var(--space-4);
+            backdrop-filter: var(--backdrop-blur);
+            transition: all 0.3s ease;
+        }
+
+        .stat-box:hover {
+            border-color: var(--color-border-hover);
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.08);
+        }
+
+        .stat-value {
+            font-size: var(--text-2xl);
+            font-weight: 600;
+            color: var(--color-text-primary);
+            margin-bottom: var(--space-2);
+        }
+
+        .stat-label {
+            font-size: var(--text-sm);
+            color: var(--color-text-secondary);
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: var(--space-6);
+        }
+
+        .section-title {
+            font-size: var(--text-lg);
+            font-weight: 600;
+            margin-bottom: var(--space-4);
+            color: var(--color-text-primary);
+        }
+
+        .card {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: var(--space-4);
+            backdrop-filter: var(--backdrop-blur);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--color-border-hover);
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.08);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 250px;
+            margin-bottom: var(--space-4);
+        }
+
+        /* GPU Cards */
+        .gpu-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-6);
+        }
+
+        .gpu-card {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: var(--space-4);
+            backdrop-filter: var(--backdrop-blur);
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .gpu-card-title {
+            font-size: var(--text-base);
+            font-weight: 600;
+            margin-bottom: var(--space-3);
+            color: var(--color-text-primary);
+        }
+
+        .gpu-metric {
+            margin-bottom: var(--space-3);
+            min-width: 0;
+            width: 100%;
+        }
+
+        .gpu-metric-label {
+            font-size: var(--text-xs);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-1);
+        }
+
+        .gpu-metric-value {
+            font-size: var(--text-base);
+            font-weight: 600;
+            color: var(--color-text-primary);
+            margin-bottom: var(--space-1);
+        }
+
+        .gpu-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: var(--space-1);
+            max-width: 100%;
+        }
+
+        .gpu-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #a855f7);
+            transition: width 0.3s ease;
+        }
+
+        .gpu-sparkline {
+            height: 60px;
+            margin-top: var(--space-4);
+            width: 100%;
+            display: block;
+        }
+
+        .gpu-badges {
+            display: flex;
+            gap: var(--space-2);
+            margin-top: var(--space-3);
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: var(--space-1) var(--space-3);
+            border-radius: 12px;
+            font-size: var(--text-xs);
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--color-text-secondary);
+        }
+
+        .badge-ok {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--color-status-ok);
+        }
+
+        .badge-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--color-status-error);
+        }
+
+        .badge-warn {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--color-status-warn);
+        }
+
+        /* Traces Table */
+        .traces-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .traces-table thead {
+            font-size: var(--text-xs);
+            color: var(--color-text-secondary);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .traces-table th {
+            text-align: left;
+            padding: var(--space-3) var(--space-4);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .traces-table tbody tr {
+            border-bottom: 1px solid var(--color-border);
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+        }
+
+        .traces-table tbody tr:hover {
+            background-color: rgba(0, 212, 255, 0.05);
+        }
+
+        .traces-table td {
+            padding: var(--space-3) var(--space-4);
+            font-size: var(--text-sm);
+        }
+
+        .trace-name {
+            color: var(--color-text-primary);
+            font-weight: 500;
+        }
+
+        .trace-duration {
+            color: var(--color-text-secondary);
+        }
+
+        .trace-time {
+            color: var(--color-text-tertiary);
+            font-family: 'Monaco', monospace;
+        }
+
+        .span-details {
+            display: none;
+            padding: var(--space-4);
+            background: rgba(0, 212, 255, 0.05);
+            border-top: 1px solid var(--color-border);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .span-details.open {
+            display: block;
+        }
+
+        .span-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-4);
+        }
+
+        .detail-item {
+            font-size: var(--text-xs);
+        }
+
+        .detail-key {
+            color: var(--color-text-secondary);
+            font-weight: 500;
+            margin-bottom: var(--space-1);
+        }
+
+        .detail-value {
+            color: var(--color-text-primary);
+            font-family: 'Monaco', monospace;
+            word-break: break-all;
+        }
+
+        /* Logs Feed */
+        .logs-feed {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            backdrop-filter: var(--backdrop-blur);
+        }
+
+        #logsContainer {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .logs-filter {
+            display: flex;
+            gap: var(--space-2);
+            padding: var(--space-4);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .filter-pill {
+            padding: var(--space-2) var(--space-3);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            background: transparent;
+            color: var(--color-text-secondary);
+            font-size: var(--text-xs);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-pill:hover,
+        .filter-pill.active {
+            background: var(--color-bg-primary);
+            border-color: var(--color-accent-cyan);
+            color: var(--color-accent-cyan);
+        }
+
+        .log-entry {
+            display: grid;
+            grid-template-columns: 80px 60px 1fr;
+            gap: var(--space-4);
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 1px solid var(--color-border);
+            font-size: var(--text-sm);
+            font-family: 'Monaco', monospace;
+            align-items: start;
+        }
+
+        .log-time {
+            color: var(--color-text-tertiary);
+        }
+
+        .log-severity {
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .log-message {
+            color: var(--color-text-primary);
+            word-break: break-word;
+        }
+
+        .log-entry.ERROR .log-severity {
+            color: var(--color-accent-red);
+        }
+
+        .log-entry.WARN .log-severity {
+            color: var(--color-accent-amber);
+        }
+
+        .log-entry.INFO .log-severity {
+            color: var(--color-accent-cyan);
+        }
+
+        /* Utilities */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 212, 255, 0.4);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--space-4);
+            }
+
+            .header {
+                flex-direction: column;
+                gap: var(--space-4);
+                align-items: flex-start;
+            }
+
+            .header-right {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .gpu-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .traces-table {
+                font-size: var(--text-xs);
+            }
+
+            .traces-table th,
+            .traces-table td {
+                padding: var(--space-2);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <div class="header-title">ModalTrace</div>
+            <div class="live-indicator">
+                <span class="live-dot"></span>
+                <span>Live</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="header-info">
+                service: <strong id="serviceName">—</strong>
+            </div>
+            <div class="session-uptime">
+                session: <strong id="uptime">00:00:00</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Stats Row -->
+        <div class="stats-row" id="statsRow"></div>
+
+        <!-- Pipeline Chart Section -->
+        <div class="section">
+            <div class="section-title">Pipeline Stage Latencies (P95, last 60s)</div>
+            <div class="card">
+                <div class="chart-container">
+                    <canvas id="pipelineChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- GPU Cards Section -->
+        <div id="gpuSection" class="hidden">
+            <div class="section-title">GPU Metrics</div>
+            <div class="gpu-cards" id="gpuCards"></div>
+        </div>
+
+        <!-- Traces Table Section -->
+        <div class="section">
+            <div class="section-title">Recent Traces</div>
+            <div class="card">
+                <table class="traces-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40%">Span Name</th>
+                            <th style="width: 15%">Duration</th>
+                            <th style="width: 15%">Status</th>
+                            <th style="width: 30%">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tracesBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Logs Feed Section -->
+        <div class="section">
+            <div class="section-title">Logs</div>
+            <div class="logs-feed">
+                <div class="logs-filter" id="logsFilter">
+                    <button class="filter-pill active" data-level="">All</button>
+                    <button class="filter-pill" data-level="ERROR">Error</button>
+                    <button class="filter-pill" data-level="WARN">Warn</button>
+                    <button class="filter-pill" data-level="INFO">Info</button>
+                </div>
+                <div id="logsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let sessionStartTime = Date.now();
+        let pipelineChart = null;
+        let gpuSparklines = {};
+        let currentLogLevel = "";
+
+        // Stat box configuration
+        const statBoxes = [
+            { id: "fps", label: "FPS", metric: "frames", default: "0.0" },
+            { id: "inferenceP95", label: "Inference P95", metric: "inference", default: "— ms" },
+            { id: "renderP95", label: "Render P95", metric: "render", default: "— ms" },
+            { id: "encodeP95", label: "Encode P95", metric: "encode", default: "— ms" },
+            { id: "dropped", label: "Dropped", metric: "dropped", default: "0" },
+            { id: "avDrift", label: "A/V Drift", metric: "drift", default: "— ms" },
+        ];
+
+        // Initialize stat boxes
+        function initStatsRow() {
+            const statsRow = document.getElementById("statsRow");
+            statBoxes.forEach(box => {
+                const div = document.createElement("div");
+                div.className = "stat-box";
+                div.innerHTML = `
+                    <div class="stat-value" id="stat-${box.id}">${box.default}</div>
+                    <div class="stat-label">${box.label}</div>
+                `;
+                statsRow.appendChild(div);
+            });
+        }
+
+        // Initialize filters
+        function initLogsFilter() {
+            const filterButtons = document.querySelectorAll(".filter-pill");
+            filterButtons.forEach(btn => {
+                btn.addEventListener("click", (e) => {
+                    filterButtons.forEach(b => b.classList.remove("active"));
+                    e.target.classList.add("active");
+                    currentLogLevel = e.target.dataset.level;
+                    updateLogs([]);
+                });
+            });
+        }
+
+        // Update uptime counter
+        function updateUptime() {
+            const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+            const hours = Math.floor(elapsed / 3600);
+            const minutes = Math.floor((elapsed % 3600) / 60);
+            const seconds = elapsed % 60;
+            document.getElementById("uptime").textContent =
+                `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        }
+
+        // Fetch all data
+        async function fetchAll() {
+            try {
+                const now = Date.now();
+                const last60s = now - 60000;
+
+                const [spans, pipelineMetrics, gpuData, logs, droppedFrames, avDrift] = await Promise.all([
+                    fetch("/api/spans?limit=50").then(r => r.json()),
+                    fetch(`/api/metrics/modaltrace.pipeline.stage.duration?since_ms=${last60s}`).then(r => r.json()),
+                    fetch("/api/gpu").then(r => r.json()),
+                    fetch("/api/logs?limit=100").then(r => r.json()),
+                    fetch("/api/metrics/modaltrace.frames.dropped").then(r => r.json()).catch(() => []),
+                    fetch("/api/metrics/modaltrace.av_sync.drift").then(r => r.json()).catch(() => []),
+                ]);
+
+                updateStats(spans, pipelineMetrics, droppedFrames, avDrift);
+                updatePipelineChart(pipelineMetrics);
+                updateGPU(gpuData);
+                updateTraces(spans);
+                updateLogs(logs);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
+
+        // Update stats
+        function updateStats(spans, pipelineMetrics, droppedFrames, avDrift) {
+            // Service name from first span
+            if (spans.length > 0) {
+                const serviceName = spans[0].service_name || "unknown";
+                document.getElementById("serviceName").textContent = serviceName;
+            }
+
+            // FPS: count spans in last 5 seconds
+            if (spans.length > 0) {
+                const now = Date.now();
+                const last5s = now - 5000;
+                const recentSpans = spans.filter(s => s.start_time_ms >= last5s);
+                const fps = (recentSpans.length / 5).toFixed(1);
+                document.getElementById("stat-fps").textContent = fps;
+            }
+
+            // Extract P95 latencies by pipeline stage from metrics
+            const stageLatencies = {
+                inference: null,
+                render: null,
+                encode: null
+            };
+
+            if (pipelineMetrics.length > 0) {
+                // Group by stage and get latest P95 for each
+                const byStage = {};
+                pipelineMetrics.forEach(m => {
+                    const stage = m.attributes?.["modaltrace.pipeline.stage"] || "unknown";
+                    if (!byStage[stage] || m.timestamp_ms > (byStage[stage].timestamp_ms || 0)) {
+                        byStage[stage] = m;
+                    }
+                });
+
+                // Map stage names to stat IDs
+                if (byStage["inference"] && byStage["inference"].percentiles) {
+                    stageLatencies.inference = byStage["inference"].percentiles.p95;
+                }
+                if (byStage["render"] && byStage["render"].percentiles) {
+                    stageLatencies.render = byStage["render"].percentiles.p95;
+                }
+                if (byStage["encode"] && byStage["encode"].percentiles) {
+                    stageLatencies.encode = byStage["encode"].percentiles.p95;
+                }
+            }
+
+            document.getElementById("stat-inferenceP95").textContent =
+                stageLatencies.inference ? `${stageLatencies.inference.toFixed(1)} ms` : "— ms";
+            document.getElementById("stat-renderP95").textContent =
+                stageLatencies.render ? `${stageLatencies.render.toFixed(1)} ms` : "— ms";
+            document.getElementById("stat-encodeP95").textContent =
+                stageLatencies.encode ? `${stageLatencies.encode.toFixed(1)} ms` : "— ms";
+
+            // Dropped frames: latest value
+            if (droppedFrames.length > 0) {
+                const latest = droppedFrames[droppedFrames.length - 1];
+                document.getElementById("stat-dropped").textContent = latest.value || "0";
+            }
+
+            // A/V Drift: latest value
+            if (avDrift.length > 0) {
+                const latest = avDrift[avDrift.length - 1];
+                document.getElementById("stat-avDrift").textContent =
+                    latest.value ? `${latest.value.toFixed(1)} ms` : "— ms";
+            }
+        }
+
+        // Initialize and update pipeline chart
+        function updatePipelineChart(metrics) {
+            if (!metrics || metrics.length === 0) {
+                return;
+            }
+
+            const ctx = document.getElementById("pipelineChart");
+            if (!ctx) return;
+
+            // Group metrics by stage and build time series
+            const stages = {};
+            const allTimes = new Set();
+
+            metrics.forEach(m => {
+                const stage = m.attributes?.["modaltrace.pipeline.stage"] || "unknown";
+                const timestamp = m.timestamp_ms;
+
+                if (!stages[stage]) {
+                    stages[stage] = {};
+                }
+                stages[stage][timestamp] = m.percentiles?.p95 || null;
+                allTimes.add(timestamp);
+            });
+
+            // Sort timestamps to build labels
+            const sortedTimes = Array.from(allTimes).sort((a, b) => a - b);
+            const timeLabels = sortedTimes.map(ts => {
+                const time = new Date(ts);
+                return time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            });
+
+            // Define stage colors
+            const stageColors = {
+                "inference": "#00d4ff",
+                "render": "#a855f7",
+                "encode": "#22c55e",
+                "unknown": "#888888"
+            };
+
+            // Build datasets for each stage
+            const datasets = Object.entries(stages).map(([stage, data], idx) => {
+                const dataPoints = sortedTimes.map(ts => data[ts] || null);
+                const color = stageColors[stage] || stageColors["unknown"];
+
+                return {
+                    label: stage.charAt(0).toUpperCase() + stage.slice(1),
+                    data: dataPoints,
+                    borderColor: color,
+                    backgroundColor: color.includes("212, 255") ? "rgba(0, 212, 255, 0.05)" :
+                        color === "#a855f7" ? "rgba(168, 85, 247, 0.05)" :
+                        color === "#22c55e" ? "rgba(34, 197, 94, 0.05)" :
+                        "rgba(136, 136, 136, 0.05)",
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    pointBackgroundColor: color,
+                    spanGaps: true,
+                };
+            });
+
+            const config = {
+                type: "line",
+                data: {
+                    labels: timeLabels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: "index" },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: "top",
+                            labels: { color: "var(--color-text-secondary)", usePointStyle: true }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: "rgba(255, 255, 255, 0.06)" },
+                            ticks: { color: "var(--color-text-secondary)" }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: "rgba(255, 255, 255, 0.06)" },
+                            ticks: { color: "var(--color-text-secondary)" }
+                        }
+                    }
+                }
+            };
+
+            if (pipelineChart) {
+                pipelineChart.data = config.data;
+                pipelineChart.options = config.options;
+                pipelineChart.update();
+            } else {
+                pipelineChart = new Chart(ctx, config);
+            }
+        }
+
+        // Update GPU cards
+        function updateGPU(gpuData) {
+            const gpuSection = document.getElementById("gpuSection");
+            const gpuCards = document.getElementById("gpuCards");
+
+            if (!gpuData || Object.keys(gpuData).length === 0) {
+                gpuSection.classList.add("hidden");
+                return;
+            }
+
+            gpuSection.classList.remove("hidden");
+            gpuCards.innerHTML = "";
+
+            Object.entries(gpuData).forEach(([deviceId, metrics]) => {
+                // Safe metric extraction with fallbacks
+                const util = metrics["modaltrace.gpu.utilization"] ?? 0;
+                const memUsed = metrics["modaltrace.gpu.memory.used"] ?? 0;
+                const memTotal = metrics["modaltrace.gpu.memory.total"] ?? 24;
+                const temp = metrics["modaltrace.gpu.temperature"] ?? 0;
+                const power = metrics["modaltrace.gpu.power.draw"] ?? 0;
+                const memPercent = memTotal > 0 ? (memUsed / memTotal) * 100 : 0;
+
+                // Get device name if available
+                const deviceName = metrics["modaltrace.gpu.device_name"] || "NVIDIA GPU";
+
+                const card = document.createElement("div");
+                card.className = "gpu-card";
+                card.innerHTML = `
+                    <div class="gpu-card-title">GPU ${deviceId} — ${deviceName}</div>
+                    <div class="gpu-metric">
+                        <div class="gpu-metric-label">Utilization</div>
+                        <div class="gpu-metric-value">${(util * 100).toFixed(1)}%</div>
+                        <div class="gpu-bar">
+                            <div class="gpu-bar-fill" style="width: ${util * 100}%"></div>
+                        </div>
+                    </div>
+                    <div class="gpu-metric">
+                        <div class="gpu-metric-label">Memory</div>
+                        <div class="gpu-metric-value">${memUsed.toFixed(1)}/${memTotal.toFixed(0)} GB</div>
+                        <div class="gpu-bar">
+                            <div class="gpu-bar-fill" style="width: ${memPercent.toFixed(1)}%"></div>
+                        </div>
+                    </div>
+                    <div class="gpu-badges">
+                        <div class="badge">${temp.toFixed(0)}°C</div>
+                        <div class="badge">${power.toFixed(0)}W</div>
+                    </div>
+                    <div style="position: relative; height: 60px; width: 100%; margin-top: var(--space-4);">
+                        <canvas id="sparkline-${deviceId}" style="max-width: 100%;"></canvas>
+                    </div>
+                `;
+                gpuCards.appendChild(card);
+
+                // Create sparkline (simple line chart)
+                const sparklineCtx = document.getElementById(`sparkline-${deviceId}`);
+                if (sparklineCtx) {
+                    if (gpuSparklines[deviceId]) {
+                        gpuSparklines[deviceId].destroy();
+                    }
+                    gpuSparklines[deviceId] = new Chart(sparklineCtx, {
+                        type: "line",
+                        data: {
+                            labels: Array.from({ length: 10 }, (_, i) => i),
+                            datasets: [{
+                                data: Array(10).fill(util * 100),
+                                borderColor: "#00d4ff",
+                                backgroundColor: "rgba(0, 212, 255, 0.1)",
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 0,
+                                borderWidth: 1,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                            scales: { x: { display: false }, y: { display: false, min: 0, max: 100 } }
+                        }
+                    });
+                }
+            });
+        }
+
+        // Update traces table
+        function updateTraces(spans) {
+            const tbody = document.getElementById("tracesBody");
+            tbody.innerHTML = "";
+
+            spans.slice(0, 50).forEach((span, idx) => {
+                const row = document.createElement("tr");
+                const time = new Date(span.start_time_ms);
+                const timeStr = time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }) +
+                    `.${String(Math.floor((span.start_time_ms % 1000) / 10)).padStart(2, "0")}`;
+
+                const statusClass = span.status === "OK" ? "badge-ok" :
+                                   span.status === "ERROR" ? "badge-error" : "badge";
+                const statusText = span.status || "UNKNOWN";
+
+                row.innerHTML = `
+                    <td class="trace-name">${span.name}</td>
+                    <td class="trace-duration">${(span.duration_ms || 0).toFixed(1)} ms</td>
+                    <td><span class="badge ${statusClass}">${statusText}</span></td>
+                    <td class="trace-time">${timeStr}</td>
+                `;
+                row.style.cursor = "pointer";
+
+                row.addEventListener("click", () => {
+                    const details = row.nextElementSibling;
+                    if (details && details.classList.contains("span-details")) {
+                        details.classList.toggle("open");
+                    } else {
+                        const detailsRow = document.createElement("tr");
+                        detailsRow.className = "span-details open";
+                        const attrCount = Object.keys(span.attributes || {}).length;
+                        const html = attrCount > 0
+                            ? Object.entries(span.attributes).map(([k, v]) =>
+                                `<div class="detail-item"><div class="detail-key">${k}</div><div class="detail-value">${v}</div></div>`)
+                                .join("")
+                            : '<div class="detail-item" style="color: var(--color-text-secondary);">No attributes</div>';
+                        detailsRow.innerHTML = `<td colspan="4"><div class="span-details-grid">${html}</div></td>`;
+                        row.insertAdjacentElement("afterend", detailsRow);
+                    }
+                });
+                tbody.appendChild(row);
+            });
+        }
+
+        // Update logs
+        function updateLogs(logs) {
+            const container = document.getElementById("logsContainer");
+            const filtered = currentLogLevel ? logs.filter(l => l.severity === currentLogLevel) : logs;
+
+            // Sort logs newest first, limit to 100
+            const sortedLogs = filtered
+                .sort((a, b) => (b.timestamp_ms || 0) - (a.timestamp_ms || 0))
+                .slice(0, 100);
+
+            container.innerHTML = sortedLogs
+                .map(log => {
+                    const time = new Date(log.timestamp_ms || Date.now());
+                    const timeStr = time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }) +
+                        `.${String(Math.floor(((log.timestamp_ms || 0) % 1000) / 10)).padStart(2, "0")}`;
+                    const severity = log.severity || "INFO";
+                    const message = log.body || "(empty message)";
+
+                    return `
+                        <div class="log-entry ${severity}">
+                            <div class="log-time">${timeStr}</div>
+                            <div class="log-severity">${severity}</div>
+                            <div class="log-message">${message}</div>
+                        </div>
+                    `;
+                })
+                .join("");
+
+            // Auto-scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Initialize
+        initStatsRow();
+        initLogsFilter();
+        updateUptime();
+        setInterval(updateUptime, 1000);
+        setInterval(fetchAll, 2000);
+        fetchAll();
+    </script>
+</body>
+</html>
