@@ -9,7 +9,7 @@
 
 **OpenTelemetry observability for real-time AI video applications**
 
-[Docs](./docs/) • [API Reference](./docs/API.md) • [Examples](./docs/EXAMPLES.md) • [Issues](https://github.com/arnabdeypolimi/video_ai_telemetry/issues) • [Contributing](./CONTRIBUTING.md)
+[Docs](./docs/) • [API Reference](./docs/API.md) • [Examples](./docs/EXAMPLES.md) • [Comparison](./docs/COMPARISON.md) • [Issues](https://github.com/arnabdeypolimi/video_ai_telemetry/issues) • [Contributing](./CONTRIBUTING.md)
 
 </div>
 
@@ -26,6 +26,22 @@ Built for **production AI systems**, ModalTrace helps you understand latency bot
 ![ModalTrace Dashboard](docs/dashboard-demo.gif)
 
 </div>
+
+---
+
+## Why ModalTrace?
+
+Existing observability tools focus on LLM apps, batch ML training, or general APM — none target **real-time video AI pipelines**. ModalTrace is the only open-source library that provides frame-level metrics, A/V sync tracking, and pipeline stage tracing designed specifically for production video inference workloads.
+
+| Feature | ModalTrace | Langfuse | Datadog | W&B |
+|---------|:---------:|:--------:|:-------:|:---:|
+| Video AI metrics | ✅ | ❌ | ❌ | ❌ |
+| GPU monitoring | ✅ | ❌ | ✅ | ✅ |
+| Frame-level metrics | ✅ | ❌ | ❌ | ❌ |
+| A/V sync tracking | ✅ | ❌ | ❌ | ❌ |
+| Pricing | Free OSS | $29+/mo | $31+/host/mo | Paid |
+
+See the [full comparison →](./docs/COMPARISON.md)
 
 ---
 

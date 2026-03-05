@@ -10,6 +10,7 @@ Welcome to **ModalTrace** - an open-source OpenTelemetry observability library f
 - **[Examples](Examples)** - Practical usage examples
 - **[Contributing](Contributing)** - How to contribute
 - **[FAQ](FAQ)** - Frequently asked questions
+- **[Comparison](https://github.com/arnabdeypolimi/video_ai_telemetry/blob/main/docs/COMPARISON.md)** - How ModalTrace compares to Langfuse, Datadog, W&B, and others
 
 ## What is ModalTrace?
 
