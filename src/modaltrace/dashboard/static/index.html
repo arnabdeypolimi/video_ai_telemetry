@@ -10,19 +10,20 @@
         /* Design Tokens */
         :root {
             /* Primary brand colors */
-            --color-bg-primary: #080808;
-            --color-bg-secondary: rgba(255, 255, 255, 0.04);
-            --color-border: rgba(255, 255, 255, 0.08);
-            --color-border-hover: rgba(255, 255, 255, 0.12);
+            --color-bg-primary: #0A0A0B;
+            --color-bg-secondary: #111113;
+            --color-bg-tertiary: #18181B;
+            --color-border: #1E1E22;
+            --color-border-hover: #2A2A30;
 
             /* Text colors */
-            --color-text-primary: #ffffff;
-            --color-text-secondary: #888888;
-            --color-text-tertiary: #555555;
+            --color-text-primary: #FAFAFA;
+            --color-text-secondary: #71717A;
+            --color-text-tertiary: #3F3F46;
 
             /* Accent colors */
-            --color-accent-cyan: #00d4ff;
-            --color-accent-purple: #a855f7;
+            --color-accent-primary: #3B82F6;
+            --color-accent-secondary: #6366F1;
             --color-accent-green: #22c55e;
             --color-accent-amber: #f59e0b;
             --color-accent-red: #ef4444;
@@ -32,9 +33,10 @@
             --color-status-warn: #f59e0b;
             --color-status-error: #ef4444;
 
-            /* Glassmorphism */
-            --backdrop-blur: blur(12px);
-            --surface-glow: 0 0 20px rgba(0, 212, 255, 0.1);
+            /* Shadows */
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
 
             /* Typography scale */
             --text-xs: 12px;
@@ -66,12 +68,13 @@
             background: var(--color-bg-primary);
             color: var(--color-text-primary);
             font-family: 'Inter', sans-serif;
-            line-height: 1.6;
-            font-size: var(--text-base);
+            line-height: 1.5;
+            font-size: var(--text-sm);
+            -webkit-font-smoothing: antialiased;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1440px;
             margin: 0 auto;
             padding: var(--space-6);
         }
@@ -84,7 +87,6 @@
             padding: var(--space-6) var(--space-8);
             background: var(--color-bg-secondary);
             border-bottom: 1px solid var(--color-border);
-            backdrop-filter: var(--backdrop-blur);
             margin-bottom: var(--space-6);
             border-radius: 0;
             position: sticky;
@@ -109,14 +111,14 @@
             align-items: center;
             gap: var(--space-2);
             font-size: var(--text-sm);
-            color: var(--color-accent-cyan);
+            color: var(--color-accent-primary);
         }
 
         .live-dot {
             display: inline-block;
             width: 8px;
             height: 8px;
-            background: var(--color-accent-cyan);
+            background: var(--color-accent-primary);
             border-radius: 50%;
             animation: pulse 2s infinite;
         }
@@ -156,16 +158,15 @@
         .stat-box {
             background: var(--color-bg-secondary);
             border: 1px solid var(--color-border);
-            border-left: 3px solid var(--color-accent-cyan);
+            border-left: 3px solid var(--color-accent-primary);
             border-radius: 8px;
             padding: var(--space-4);
-            backdrop-filter: var(--backdrop-blur);
             transition: all 0.3s ease;
         }
 
         .stat-box:hover {
             border-color: var(--color-border-hover);
-            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.08);
+            box-shadow: var(--shadow-sm);
         }
 
         .stat-value {
@@ -186,10 +187,12 @@
         }
 
         .section-title {
-            font-size: var(--text-lg);
+            font-size: var(--text-sm);
             font-weight: 600;
             margin-bottom: var(--space-4);
-            color: var(--color-text-primary);
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .card {
@@ -197,13 +200,11 @@
             border: 1px solid var(--color-border);
             border-radius: 8px;
             padding: var(--space-4);
-            backdrop-filter: var(--backdrop-blur);
             transition: all 0.3s ease;
         }
 
         .card:hover {
             border-color: var(--color-border-hover);
-            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.08);
         }
 
         /* Chart Container */
@@ -226,7 +227,6 @@
             border: 1px solid var(--color-border);
             border-radius: 8px;
             padding: var(--space-4);
-            backdrop-filter: var(--backdrop-blur);
             min-width: 0;
             overflow: hidden;
         }
@@ -260,7 +260,7 @@
         .gpu-bar {
             width: 100%;
             height: 8px;
-            background: rgba(0, 212, 255, 0.1);
+            background: rgba(59, 130, 246, 0.1);
             border-radius: 4px;
             overflow: hidden;
             margin-top: var(--space-1);
@@ -269,7 +269,7 @@
 
         .gpu-bar-fill {
             height: 100%;
-            background: linear-gradient(90deg, #00d4ff, #a855f7);
+            background: linear-gradient(90deg, #3B82F6, #6366F1);
             transition: width 0.3s ease;
         }
 
@@ -338,7 +338,7 @@
         }
 
         .traces-table tbody tr:hover {
-            background-color: rgba(0, 212, 255, 0.05);
+            background-color: rgba(59, 130, 246, 0.05);
         }
 
         .traces-table td {
@@ -363,7 +363,7 @@
         .span-details {
             display: none;
             padding: var(--space-4);
-            background: rgba(0, 212, 255, 0.05);
+            background: rgba(59, 130, 246, 0.03);
             border-top: 1px solid var(--color-border);
             border-bottom: 1px solid var(--color-border);
         }
@@ -399,7 +399,6 @@
             background: var(--color-bg-secondary);
             border: 1px solid var(--color-border);
             border-radius: 8px;
-            backdrop-filter: var(--backdrop-blur);
         }
 
         #logsContainer {
@@ -428,9 +427,9 @@
 
         .filter-pill:hover,
         .filter-pill.active {
-            background: var(--color-bg-primary);
-            border-color: var(--color-accent-cyan);
-            color: var(--color-accent-cyan);
+            background: var(--color-bg-tertiary);
+            border-color: var(--color-accent-primary);
+            color: var(--color-accent-primary);
         }
 
         .log-entry {
@@ -467,7 +466,7 @@
         }
 
         .log-entry.INFO .log-severity {
-            color: var(--color-accent-cyan);
+            color: var(--color-accent-primary);
         }
 
         /* Log attributes */
@@ -487,7 +486,7 @@
         }
 
         .log-attr-key {
-            color: var(--color-accent-cyan);
+            color: var(--color-accent-primary);
             opacity: 0.8;
         }
 
@@ -507,12 +506,12 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background: rgba(0, 212, 255, 0.2);
+            background: rgba(59, 130, 246, 0.2);
             border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 212, 255, 0.4);
+            background: rgba(59, 130, 246, 0.4);
         }
 
         /* Responsive */
@@ -845,10 +844,10 @@
 
             // Define stage colors
             const stageColors = {
-                "inference": "#00d4ff",
-                "render": "#a855f7",
+                "inference": "#3B82F6",
+                "render": "#6366F1",
                 "encode": "#22c55e",
-                "unknown": "#888888"
+                "unknown": "#71717A"
             };
 
             // Build datasets for each stage
@@ -860,10 +859,10 @@
                     label: stage.charAt(0).toUpperCase() + stage.slice(1),
                     data: dataPoints,
                     borderColor: color,
-                    backgroundColor: color.includes("212, 255") ? "rgba(0, 212, 255, 0.05)" :
-                        color === "#a855f7" ? "rgba(168, 85, 247, 0.05)" :
+                    backgroundColor: color === "#3B82F6" ? "rgba(59, 130, 246, 0.05)" :
+                        color === "#6366F1" ? "rgba(99, 102, 241, 0.05)" :
                         color === "#22c55e" ? "rgba(34, 197, 94, 0.05)" :
-                        "rgba(136, 136, 136, 0.05)",
+                        "rgba(113, 113, 122, 0.05)",
                     borderWidth: 2,
                     tension: 0.4,
                     fill: true,
@@ -888,18 +887,18 @@
                         legend: {
                             display: true,
                             position: "top",
-                            labels: { color: "var(--color-text-secondary)", usePointStyle: true }
+                            labels: { color: "#71717A", usePointStyle: true }
                         }
                     },
                     scales: {
                         x: {
-                            grid: { color: "rgba(255, 255, 255, 0.06)" },
-                            ticks: { color: "var(--color-text-secondary)" }
+                            grid: { color: "rgba(255, 255, 255, 0.04)" },
+                            ticks: { color: "#71717A" }
                         },
                         y: {
                             beginAtZero: true,
-                            grid: { color: "rgba(255, 255, 255, 0.06)" },
-                            ticks: { color: "var(--color-text-secondary)" }
+                            grid: { color: "rgba(255, 255, 255, 0.04)" },
+                            ticks: { color: "#71717A" }
                         }
                     }
                 }
@@ -987,8 +986,8 @@
                             labels: Array.from({ length: history.length }, (_, i) => i),
                             datasets: [{
                                 data: history,
-                                borderColor: "#00d4ff",
-                                backgroundColor: "rgba(0, 212, 255, 0.1)",
+                                borderColor: "#3B82F6",
+                                backgroundColor: "rgba(59, 130, 246, 0.1)",
                                 fill: true,
                                 tension: 0.4,
                                 pointRadius: 0,

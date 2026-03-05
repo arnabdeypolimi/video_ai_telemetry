@@ -21,6 +21,12 @@ ModalTrace is an open-source OpenTelemetry library that provides production-grad
 
 Built for **production AI systems**, ModalTrace helps you understand latency bottlenecks, monitor resource utilization, and debug performance issues in complex distributed video AI pipelines.
 
+<div align="center">
+
+![ModalTrace Dashboard](docs/dashboard-demo.gif)
+
+</div>
+
 ---
 
 ## ✨ Features
