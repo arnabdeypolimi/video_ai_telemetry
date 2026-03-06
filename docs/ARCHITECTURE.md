@@ -1,5 +1,7 @@
 # ModalTrace Architecture
 
+<img src="logo.svg" alt="ModalTrace" width="240" />
+
 ## Overview
 
 ModalTrace is an OpenTelemetry-based observability library designed for real-time AI video applications. It provides comprehensive tracing, metrics, and logging capabilities with minimal performance overhead.

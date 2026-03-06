@@ -97,7 +97,12 @@
         .header-left {
             display: flex;
             align-items: center;
-            gap: var(--space-4);
+            gap: var(--space-3);
+        }
+
+        .header-logo {
+            width: 28px;
+            height: 28px;
         }
 
         .header-title {
@@ -555,6 +560,10 @@
     <!-- Header -->
     <div class="header">
         <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="2" width="60" height="60" rx="14" stroke="#00d4ff" stroke-width="2" opacity="0.8"/>
+                <polyline points="14,38 24,38 30,20 38,46 44,26 52,38" stroke="#00d4ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
             <div class="header-title">ModalTrace</div>
             <div class="live-indicator">
                 <span class="live-dot"></span>

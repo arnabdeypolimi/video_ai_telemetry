@@ -1,5 +1,7 @@
 # ModalTrace vs. Alternatives
 
+<img src="logo.svg" alt="ModalTrace" width="240" />
+
 Choosing the right observability tool for your AI video pipeline.
 
 ModalTrace is the **only** open-source observability library purpose-built for real-time video AI workloads. While general-purpose tools excel in their domains, none offer native frame-level metrics, A/V sync tracking, or pipeline-stage tracing designed for video inference pipelines.

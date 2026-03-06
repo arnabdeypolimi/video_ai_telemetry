@@ -1,5 +1,7 @@
 # ModalTrace Usage Examples
 
+<img src="logo.svg" alt="ModalTrace" width="240" />
+
 ## Basic Usage
 
 ### Initialize ModalTrace

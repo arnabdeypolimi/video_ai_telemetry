@@ -2,6 +2,10 @@
 
 <div align="center">
 
+<img src="docs/logo.svg" alt="ModalTrace" width="320" />
+
+<br/>
+
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PyPI version](https://img.shields.io/pypi/v/modaltrace.svg)](https://pypi.org/project/modaltrace/)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue)](https://www.python.org/downloads/)

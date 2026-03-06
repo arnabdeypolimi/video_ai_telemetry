@@ -1,5 +1,7 @@
 # ModalTrace API Reference
 
+<img src="logo.svg" alt="ModalTrace" width="240" />
+
 ## Core Classes
 
 ### ModalTraceConfig
