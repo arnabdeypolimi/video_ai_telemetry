@@ -5,7 +5,6 @@ on telemetry data to ensure correct visualization.
 """
 
 import time
-import pytest
 
 
 class TestStatisticsCalculation:
@@ -197,7 +196,7 @@ class TestPipelineChartDataPreparation:
             stages[stage][timestamp] = m["percentiles"].get("p95")
             all_times.add(timestamp)
 
-        sorted_times = sorted(list(all_times))
+        sorted_times = sorted(all_times)
         time_labels = [str(t) for t in sorted_times]
 
         # Should have data for 2 stages at 2 timestamps
@@ -242,7 +241,7 @@ class TestGPUMetricsProcessing:
         }
 
         # Simulate JavaScript conversion
-        for device_id, metrics in gpu_data.items():
+        for _device_id, metrics in gpu_data.items():
             util = metrics.get("modaltrace.gpu.utilization", 0)
             util_percent = util * 100
 
@@ -259,7 +258,7 @@ class TestGPUMetricsProcessing:
         }
 
         # Simulate JavaScript calculation
-        for device_id, metrics in gpu_data.items():
+        for _device_id, metrics in gpu_data.items():
             mem_used = metrics.get("modaltrace.gpu.memory.used", 0)
             mem_total = metrics.get("modaltrace.gpu.memory.total", 1)
             mem_percent = (mem_used / mem_total) * 100
@@ -279,7 +278,7 @@ class TestGPUMetricsProcessing:
         }
 
         # Simulate JavaScript safe extraction
-        for device_id, metrics in gpu_data.items():
+        for _device_id, metrics in gpu_data.items():
             util = metrics.get("modaltrace.gpu.utilization") or 0
             mem_used = metrics.get("modaltrace.gpu.memory.used") or 0
             mem_total = metrics.get("modaltrace.gpu.memory.total") or 24
@@ -330,7 +329,7 @@ class TestTimestampFormatting:
         ]
 
         # Simulate JavaScript sorting (newest first)
-        sorted_logs = sorted(logs, key=lambda l: l["timestamp_ms"], reverse=True)
+        sorted_logs = sorted(logs, key=lambda log: log["timestamp_ms"], reverse=True)
 
         # Should be newest first
         assert sorted_logs[0]["body"] == "Recent message"
@@ -423,10 +422,10 @@ class TestLogFilteringBySeverity:
 
         # Simulate JavaScript filtering
         current_level = "ERROR"
-        filtered = [l for l in logs if l["severity"] == current_level]
+        filtered = [log for log in logs if log["severity"] == current_level]
 
         assert len(filtered) == 2
-        assert all(l["severity"] == "ERROR" for l in filtered)
+        assert all(log["severity"] == "ERROR" for log in filtered)
 
     def test_filter_logs_all_severities(self):
         """Test showing all log severities."""
@@ -438,6 +437,6 @@ class TestLogFilteringBySeverity:
 
         # Simulate JavaScript filtering with empty level (all)
         current_level = ""
-        filtered = [l for l in logs if current_level == "" or l["severity"] == current_level]
+        filtered = [log for log in logs if current_level == "" or log["severity"] == current_level]
 
         assert len(filtered) == 3

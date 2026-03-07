@@ -1,10 +1,11 @@
 """FastAPI server for OTLP receiver and telemetry dashboard API."""
 
 import logging
-from fastapi import FastAPI, Query
+from pathlib import Path
+
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from starlette.requests import Request
-from pathlib import Path
 
 from .proto_parser import parse_logs_request, parse_metrics_request, parse_traces_request
 from .store import TelemetryStore
@@ -67,7 +68,7 @@ async def get_spans(since_ms: int | None = None, limit: int = 50):
 @app.get("/api/metrics/{name}")
 async def get_metrics(name: str, since_ms: int | None = None):
     """Get metric time series by name."""
-    # Restore dots in metric name (e.g., "modaltrace__gpu__utilization" -> "modaltrace.gpu.utilization")
+    # Restore dots: "modaltrace__gpu__utilization" -> "modaltrace.gpu.utilization"
     metric_name = name.replace("__", ".")
     return store.get_metric_series(metric_name, since_ms=since_ms)
 

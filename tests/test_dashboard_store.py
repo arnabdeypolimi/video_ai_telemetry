@@ -1,7 +1,9 @@
 """Tests for dashboard telemetry storage."""
 
-import pytest
 import time
+
+import pytest
+
 from modaltrace.dashboard.store import TelemetryStore
 
 

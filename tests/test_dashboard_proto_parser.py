@@ -1,17 +1,15 @@
 """Tests for OTLP protobuf parsing."""
 
-import pytest
-from opentelemetry.proto.trace.v1 import trace_pb2
-from opentelemetry.proto.metrics.v1 import metrics_pb2
-from opentelemetry.proto.logs.v1 import logs_pb2
 from opentelemetry.proto.common.v1 import common_pb2
-from opentelemetry.proto.resource.v1 import resource_pb2
+from opentelemetry.proto.logs.v1 import logs_pb2
+from opentelemetry.proto.metrics.v1 import metrics_pb2
+from opentelemetry.proto.trace.v1 import trace_pb2
 
 from modaltrace.dashboard.proto_parser import (
-    parse_traces_request,
-    parse_metrics_request,
-    parse_logs_request,
     _compute_histogram_percentiles,
+    parse_logs_request,
+    parse_metrics_request,
+    parse_traces_request,
 )
 
 

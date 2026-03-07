@@ -103,11 +103,11 @@ class TelemetryStore:
 
         # Filter by timestamp if provided
         if since_ms is not None:
-            logs = [l for l in logs if l.get("timestamp_ms", 0) >= since_ms]
+            logs = [log for log in logs if log.get("timestamp_ms", 0) >= since_ms]
 
         # Filter by severity level if provided
         if level is not None:
-            logs = [l for l in logs if l.get("severity") == level]
+            logs = [log for log in logs if log.get("severity") == level]
 
         # Return newest first, limited to count
-        return sorted(logs, key=lambda l: l.get("timestamp_ms", 0), reverse=True)[:limit]
+        return sorted(logs, key=lambda log: log.get("timestamp_ms", 0), reverse=True)[:limit]

@@ -234,7 +234,8 @@ def _compute_histogram_percentiles(
                 upper_bound = bounds[i] if i < len(bounds) else bounds[-1]
                 prev_cum = cumulative[i - 1] if i > 0 else 0
                 bucket_range = upper_bound - lower_bound
-                pos_in_bucket = (target - prev_cum) / (cum_count - prev_cum) if (cum_count - prev_cum) > 0 else 0
+                denom = cum_count - prev_cum
+                pos_in_bucket = (target - prev_cum) / denom if denom > 0 else 0
                 return lower_bound + pos_in_bucket * bucket_range
         return bounds[-1] if bounds else 0.0
 

@@ -1,8 +1,8 @@
 """Tests for dashboard API endpoints."""
 
-import json
 import pytest
 from fastapi.testclient import TestClient
+
 from modaltrace.dashboard.server import app, store
 
 
