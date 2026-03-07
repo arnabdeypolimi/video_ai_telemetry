@@ -1,5 +1,6 @@
 """FastAPI server for OTLP receiver and telemetry dashboard API."""
 
+import logging
 from fastapi import FastAPI, Query
 from fastapi.staticfiles import StaticFiles
 from starlette.requests import Request
@@ -7,6 +8,8 @@ from pathlib import Path
 
 from .proto_parser import parse_logs_request, parse_metrics_request, parse_traces_request
 from .store import TelemetryStore
+
+logger = logging.getLogger(__name__)
 
 # Global singleton store
 store = TelemetryStore()
@@ -24,7 +27,7 @@ async def receive_traces(request: Request):
         for span in spans:
             store.add_span(span)
     except Exception as e:
-        print(f"Error parsing traces: {e}")
+        logger.exception("Error parsing traces: %s", e)
     return {}
 
 
@@ -37,7 +40,7 @@ async def receive_metrics(request: Request):
         for point in metric_points:
             store.add_metric_point(point)
     except Exception as e:
-        print(f"Error parsing metrics: {e}")
+        logger.exception("Error parsing metrics: %s", e)
     return {}
 
 
@@ -50,7 +53,7 @@ async def receive_logs(request: Request):
         for log in logs:
             store.add_log(log)
     except Exception as e:
-        print(f"Error parsing logs: {e}")
+        logger.exception("Error parsing logs: %s", e)
     return {}
 
 
