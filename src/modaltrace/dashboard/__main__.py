@@ -9,11 +9,11 @@ logger = logging.getLogger(__name__)
 
 def main():
     """Run the dashboard server."""
-    logger.info("ModalTrace Dashboard running at http://localhost:4318")
+    logger.info("ModalTrace Dashboard running at http://localhost:8000")
     uvicorn.run(
         "modaltrace.dashboard.server:app",
         host="0.0.0.0",
-        port=4318,
+        port=8000,
         log_level="info",
     )
 

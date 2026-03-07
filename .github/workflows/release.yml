@@ -17,7 +17,17 @@ jobs:
 
       - name: Set release version
         id: version
-        run: echo "VERSION=v0.2.4" >> $GITHUB_OUTPUT
+        run: |
+          # Derive next patch version from the latest semver tag
+          LATEST=$(git tag --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+          if [ -z "$LATEST" ]; then
+            LATEST="v0.0.0"
+          fi
+          MAJOR=$(echo "$LATEST" | cut -d. -f1 | tr -d 'v')
+          MINOR=$(echo "$LATEST" | cut -d. -f2)
+          PATCH=$(echo "$LATEST" | cut -d. -f3)
+          NEXT="v${MAJOR}.${MINOR}.$((PATCH + 1))"
+          echo "VERSION=$NEXT" >> $GITHUB_OUTPUT
 
       - name: Check if tag already exists
         id: tag_check
