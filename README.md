@@ -2,6 +2,10 @@
 
 <div align="center">
 
+<img src="docs/logo.svg" alt="ModalTrace" width="320" />
+
+<br/>
+
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PyPI version](https://img.shields.io/pypi/v/modaltrace.svg)](https://pypi.org/project/modaltrace/)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue)](https://www.python.org/downloads/)
@@ -9,7 +13,7 @@
 
 **OpenTelemetry observability for real-time AI video applications**
 
-[Docs](./docs/) • [API Reference](./docs/API.md) • [Examples](./docs/EXAMPLES.md) • [Issues](https://github.com/arnabdeypolimi/video_ai_telemetry/issues) • [Contributing](./CONTRIBUTING.md)
+[Docs](./docs/) • [API Reference](./docs/API.md) • [Examples](./docs/EXAMPLES.md) • [Comparison](./docs/COMPARISON.md) • [Issues](https://github.com/arnabdeypolimi/video_ai_telemetry/issues) • [Contributing](./CONTRIBUTING.md)
 
 </div>
 
@@ -20,6 +24,28 @@
 ModalTrace is an open-source OpenTelemetry library that provides production-grade observability for real-time AI video applications. It captures traces, metrics, and logs across your entire ML pipeline—from GPU operations and neural network inference to video rendering and transport layer performance.
 
 Built for **production AI systems**, ModalTrace helps you understand latency bottlenecks, monitor resource utilization, and debug performance issues in complex distributed video AI pipelines.
+
+<div align="center">
+
+![ModalTrace Dashboard](docs/dashboard-demo.gif)
+
+</div>
+
+---
+
+## Why ModalTrace?
+
+Existing observability tools focus on LLM apps, batch ML training, or general APM — none target **real-time video AI pipelines**. ModalTrace is the only open-source library that provides frame-level metrics, A/V sync tracking, and pipeline stage tracing designed specifically for production video inference workloads.
+
+| Feature | ModalTrace | Langfuse | Datadog | W&B |
+|---------|:---------:|:--------:|:-------:|:---:|
+| Video AI metrics | ✅ | ❌ | ❌ | ❌ |
+| GPU monitoring | ✅ | ❌ | ✅ | ✅ |
+| Frame-level metrics | ✅ | ❌ | ❌ | ❌ |
+| A/V sync tracking | ✅ | ❌ | ❌ | ❌ |
+| Pricing | Free OSS | $29+/mo | $31+/host/mo | Paid |
+
+See the [full comparison →](./docs/COMPARISON.md)
 
 ---
 
@@ -59,10 +85,16 @@ Native support for OTLP over HTTP and gRPC. Export to any OpenTelemetry-compatib
 pip install modaltrace
 ```
 
-For optional features:
+For optional features (PyTorch, GPU, WebRTC, Dashboard):
 
 ```bash
-pip install modaltrace[pytorch,gpu,webrtc]
+pip install modaltrace[pytorch,gpu,webrtc,dashboard]
+```
+
+To install all features:
+
+```bash
+pip install modaltrace[all]
 ```
 
 ### 2. Configure & Initialize
@@ -90,7 +122,27 @@ sdk.start()
 
 ### 3. View Telemetry
 
-Access your traces at your observability backend (e.g., `http://localhost:16686` for Jaeger):
+#### Option A: Use ModalTrace Built-in Dashboard (Local Development)
+
+Launch the built-in dashboard server:
+
+```python
+from modaltrace.dashboard import DashboardServer
+
+server = DashboardServer()
+server.start()  # http://localhost:8000
+```
+
+The dashboard provides:
+- **Real-time stats**: FPS, latency P95, GPU metrics, A/V drift
+- **Pipeline visualization**: Multi-stage latency chart
+- **GPU monitoring**: Device-specific utilization, memory, temperature, power
+- **Trace explorer**: 50 most recent spans with expandable attributes
+- **Log viewer**: 100 most recent logs with severity filtering
+
+#### Option B: Use External Observability Backend
+
+Access your traces at your observability backend (e.g., `http://localhost:16686` for Jaeger, Datadog, Honeycomb):
 
 ```python
 # Start a pipeline span

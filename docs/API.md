@@ -1,5 +1,7 @@
 # ModalTrace API Reference
 
+<img src="logo.svg" alt="ModalTrace" width="240" />
+
 ## Core Classes
 
 ### ModalTraceConfig
@@ -357,6 +359,190 @@ from modaltrace import ModalTraceConfig
 
 config = ModalTraceConfig()  # Reads from MODALTRACE_* env vars
 ```
+
+## Dashboard API Endpoints
+
+The optional ModalTrace dashboard provides REST API endpoints for querying telemetry data. The dashboard server receives OTLP data on port 4318 and serves APIs and static files on port 8000.
+
+### OTLP Receiver Endpoints
+
+These endpoints accept OTLP protobuf messages:
+
+```
+POST /v1/traces       # Receive trace data
+POST /v1/metrics      # Receive metrics data
+POST /v1/logs         # Receive logs data
+```
+
+### Query Endpoints
+
+#### Spans
+
+```
+GET /api/spans?since_ms=<timestamp>&limit=50
+```
+
+Returns list of recent spans (newest first).
+
+**Response:**
+```json
+[
+  {
+    "trace_id": "abc123...",
+    "span_id": "def456...",
+    "name": "process_frame",
+    "service_name": "my-pipeline",
+    "start_time_ms": 1234567890,
+    "duration_ms": 45.3,
+    "status": "OK",
+    "attributes": {
+      "modaltrace.pipeline.frame.sequence_number": 42
+    }
+  }
+]
+```
+
+#### Metrics
+
+```
+GET /api/metrics/{name}?since_ms=<timestamp>
+```
+
+Returns time series data for a specific metric.
+
+**Examples:**
+- `/api/metrics/modaltrace.pipeline.stage.duration?since_ms=1234567890`
+- `/api/metrics/modaltrace.frames.dropped`
+- `/api/metrics/modaltrace.av_sync.drift`
+
+**Response:**
+```json
+[
+  {
+    "name": "modaltrace.pipeline.stage.duration",
+    "value": 45.3,
+    "timestamp_ms": 1234567890,
+    "attributes": {
+      "modaltrace.pipeline.stage": "inference"
+    },
+    "percentiles": {
+      "p50": 40.0,
+      "p95": 45.3,
+      "p99": 50.0
+    }
+  }
+]
+```
+
+#### GPU Metrics
+
+```
+GET /api/gpu
+```
+
+Returns latest GPU readings grouped by device.
+
+**Response:**
+```json
+{
+  "0": {
+    "device_index": 0,
+    "modaltrace.gpu.utilization": 0.75,
+    "modaltrace.gpu.memory.used": 8.2,
+    "modaltrace.gpu.memory.total": 24,
+    "modaltrace.gpu.temperature": 72,
+    "modaltrace.gpu.power.draw": 210
+  }
+}
+```
+
+#### Logs
+
+```
+GET /api/logs?since_ms=<timestamp>&level=<ERROR|WARN|INFO>&limit=100
+```
+
+Returns recent log records (newest first).
+
+**Response:**
+```json
+[
+  {
+    "timestamp_ms": 1234567890,
+    "severity": "ERROR",
+    "body": "GPU memory allocation failed",
+    "trace_id": "abc123...",
+    "span_id": "def456...",
+    "attributes": {
+      "error.code": 500
+    }
+  }
+]
+```
+
+### Static Files
+
+```
+GET /             # Served from src/modaltrace/dashboard/static/
+```
+
+Returns the dashboard web UI.
+
+### Dashboard Usage
+
+**Start the dashboard server:**
+
+```python
+from modaltrace.dashboard import DashboardServer
+
+server = DashboardServer()
+server.start()  # Listens on port 8000 (dashboard) and 4318 (OTLP)
+```
+
+**Configure your application to send telemetry:**
+
+```python
+from modaltrace import ModalTraceConfig, ModalTraceSDK
+
+config = ModalTraceConfig(
+    service_name="my-pipeline",
+    otlp_endpoint="http://localhost:4318",  # Send to dashboard
+    otlp_protocol="http"
+)
+
+sdk = ModalTraceSDK(config)
+sdk.start()
+```
+
+**View dashboard:**
+
+Open `http://localhost:8000` in your browser to see real-time telemetry.
+
+### Dashboard Telemetry Requirements
+
+For proper dashboard visualization, ensure your telemetry includes:
+
+#### Required Metrics
+
+- `modaltrace.pipeline.stage.duration` with `modaltrace.pipeline.stage` attribute (inference, render, encode)
+- `modaltrace.frames.dropped` counter
+- `modaltrace.av_sync.drift` gauge
+
+#### Optional GPU Metrics
+
+- `modaltrace.gpu.utilization` (0-1 range)
+- `modaltrace.gpu.memory.used` (GB)
+- `modaltrace.gpu.memory.total` (GB)
+- `modaltrace.gpu.temperature` (°C)
+- `modaltrace.gpu.power.draw` (W)
+
+#### Span Attributes
+
+Include semantic attributes for better filtering:
+- `modaltrace.pipeline.frame.sequence_number`
+- `modaltrace.pipeline.stage` (inference, render, encode)
+- `modaltrace.inference.model.name`
+- `modaltrace.gpu.device_index`
 
 ---
 

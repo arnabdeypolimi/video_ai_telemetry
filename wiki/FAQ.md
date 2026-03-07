@@ -11,8 +11,8 @@ A: Python 3.10 or later. Optional dependencies include PyTorch, pynvml for GPU m
 ### Q: Is ModalTrace free?
 A: Yes! ModalTrace is licensed under Apache-2.0, a permissive open-source license.
 
-### Q: How does ModalTrace compare to other observability tools?
-A: ModalTrace is specifically designed for real-time AI/video applications with specialized instrumentation for PyTorch, GPU monitoring, and audio/video synchronization.
+### Q: How does ModalTrace compare to Langfuse, Datadog, or W&B?
+A: ModalTrace is the only observability library purpose-built for real-time video AI pipelines. Tools like Langfuse focus on LLM apps, Datadog on enterprise APM, and W&B on batch training — none offer native frame-level metrics, A/V sync tracking, or video pipeline stage tracing. Since ModalTrace exports standard OTLP, it works alongside any of these tools. See the [full comparison](https://github.com/arnabdeypolimi/video_ai_telemetry/blob/main/docs/COMPARISON.md) for details.
 
 ## Installation & Setup
 
