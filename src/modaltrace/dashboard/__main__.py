@@ -1,6 +1,7 @@
 """Entry point for running the ModalTrace dashboard."""
 
 import logging
+
 import uvicorn
 
 logger = logging.getLogger(__name__)
