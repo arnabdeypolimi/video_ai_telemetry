@@ -98,18 +98,22 @@ def parse_traces_request(body: bytes) -> list[dict]:
                 }
                 status = status_map.get(span.status.code, "UNSET")
 
-                spans.append({
-                    "trace_id": span.trace_id.hex(),
-                    "span_id": span.span_id.hex(),
-                    "parent_span_id": span.parent_span_id.hex() if span.parent_span_id else None,
-                    "name": span.name,
-                    "service_name": service_name,
-                    "start_time_ms": start_ms,
-                    "end_time_ms": end_ms,
-                    "duration_ms": duration_ms,
-                    "status": status,
-                    "attributes": _extract_attributes(span.attributes),
-                })
+                spans.append(
+                    {
+                        "trace_id": span.trace_id.hex(),
+                        "span_id": span.span_id.hex(),
+                        "parent_span_id": span.parent_span_id.hex()
+                        if span.parent_span_id
+                        else None,
+                        "name": span.name,
+                        "service_name": service_name,
+                        "start_time_ms": start_ms,
+                        "end_time_ms": end_ms,
+                        "duration_ms": duration_ms,
+                        "status": status,
+                        "attributes": _extract_attributes(span.attributes),
+                    }
+                )
 
     return spans
 
@@ -150,12 +154,14 @@ def parse_metrics_request(body: bytes) -> list[dict]:
                         elif dp.HasField("as_double"):
                             value = dp.as_double
 
-                        points.append({
-                            "name": metric.name,
-                            "value": value,
-                            "timestamp_ms": timestamp_ms,
-                            "attributes": _extract_attributes(dp.attributes),
-                        })
+                        points.append(
+                            {
+                                "name": metric.name,
+                                "value": value,
+                                "timestamp_ms": timestamp_ms,
+                                "attributes": _extract_attributes(dp.attributes),
+                            }
+                        )
 
                 # Handle Sum (Counter)
                 elif metric.HasField("sum"):
@@ -170,12 +176,14 @@ def parse_metrics_request(body: bytes) -> list[dict]:
                         elif dp.HasField("as_double"):
                             value = dp.as_double
 
-                        points.append({
-                            "name": metric.name,
-                            "value": value,
-                            "timestamp_ms": timestamp_ms,
-                            "attributes": _extract_attributes(dp.attributes),
-                        })
+                        points.append(
+                            {
+                                "name": metric.name,
+                                "value": value,
+                                "timestamp_ms": timestamp_ms,
+                                "attributes": _extract_attributes(dp.attributes),
+                            }
+                        )
 
                 # Handle Histogram
                 elif metric.HasField("histogram"):
@@ -189,21 +197,21 @@ def parse_metrics_request(body: bytes) -> list[dict]:
                             dp.explicit_bounds, dp.bucket_counts
                         )
 
-                        points.append({
-                            "name": metric.name,
-                            "value": dp.sum if dp.HasField("sum") else None,
-                            "timestamp_ms": timestamp_ms,
-                            "attributes": _extract_attributes(dp.attributes),
-                            "percentiles": percentiles,
-                            "count": dp.count,
-                        })
+                        points.append(
+                            {
+                                "name": metric.name,
+                                "value": dp.sum if dp.HasField("sum") else None,
+                                "timestamp_ms": timestamp_ms,
+                                "attributes": _extract_attributes(dp.attributes),
+                                "percentiles": percentiles,
+                                "count": dp.count,
+                            }
+                        )
 
     return points
 
 
-def _compute_histogram_percentiles(
-    bounds: list[float], counts: list[int]
-) -> dict[str, float]:
+def _compute_histogram_percentiles(bounds: list[float], counts: list[int]) -> dict[str, float]:
     """
     Compute approximate P50, P95, P99 from histogram explicit bounds and bucket counts.
 
@@ -285,13 +293,15 @@ def parse_logs_request(body: bytes) -> list[dict]:
                 }
                 severity = severity_map.get(log_record.severity_number, "INFO")
 
-                records.append({
-                    "timestamp_ms": timestamp_ms,
-                    "severity": severity,
-                    "body": log_record.body.string_value if log_record.HasField("body") else "",
-                    "trace_id": log_record.trace_id.hex() if log_record.trace_id else None,
-                    "span_id": log_record.span_id.hex() if log_record.span_id else None,
-                    "attributes": _extract_attributes(log_record.attributes),
-                })
+                records.append(
+                    {
+                        "timestamp_ms": timestamp_ms,
+                        "severity": severity,
+                        "body": log_record.body.string_value if log_record.HasField("body") else "",
+                        "trace_id": log_record.trace_id.hex() if log_record.trace_id else None,
+                        "span_id": log_record.span_id.hex() if log_record.span_id else None,
+                        "attributes": _extract_attributes(log_record.attributes),
+                    }
+                )
 
     return records

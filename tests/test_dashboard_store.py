@@ -38,16 +38,18 @@ class TestTelemetryStoreSpans:
         """Test spans are returned newest first."""
         now = int(time.time() * 1000)
         for i in range(3):
-            store.add_span({
-                "trace_id": f"trace{i}",
-                "span_id": f"span{i}",
-                "name": f"span_{i}",
-                "service_name": "test",
-                "start_time_ms": now - (3 - i) * 100,  # Earlier times first
-                "duration_ms": 10,
-                "status": "OK",
-                "attributes": {},
-            })
+            store.add_span(
+                {
+                    "trace_id": f"trace{i}",
+                    "span_id": f"span{i}",
+                    "name": f"span_{i}",
+                    "service_name": "test",
+                    "start_time_ms": now - (3 - i) * 100,  # Earlier times first
+                    "duration_ms": 10,
+                    "status": "OK",
+                    "attributes": {},
+                }
+            )
 
         spans = store.get_spans()
         # Should be ordered newest (highest timestamp) first
@@ -58,16 +60,18 @@ class TestTelemetryStoreSpans:
         """Test filtering spans by timestamp."""
         now = int(time.time() * 1000)
         for i in range(5):
-            store.add_span({
-                "trace_id": f"trace{i}",
-                "span_id": f"span{i}",
-                "name": f"span_{i}",
-                "service_name": "test",
-                "start_time_ms": now - (5 - i) * 100,
-                "duration_ms": 10,
-                "status": "OK",
-                "attributes": {},
-            })
+            store.add_span(
+                {
+                    "trace_id": f"trace{i}",
+                    "span_id": f"span{i}",
+                    "name": f"span_{i}",
+                    "service_name": "test",
+                    "start_time_ms": now - (5 - i) * 100,
+                    "duration_ms": 10,
+                    "status": "OK",
+                    "attributes": {},
+                }
+            )
 
         # Get spans after time T (only newer spans)
         cutoff = now - 300
@@ -81,16 +85,18 @@ class TestTelemetryStoreSpans:
         """Test limiting span count."""
         now = int(time.time() * 1000)
         for i in range(100):
-            store.add_span({
-                "trace_id": f"trace{i}",
-                "span_id": f"span{i}",
-                "name": f"span_{i}",
-                "service_name": "test",
-                "start_time_ms": now - i * 10,
-                "duration_ms": 5,
-                "status": "OK",
-                "attributes": {},
-            })
+            store.add_span(
+                {
+                    "trace_id": f"trace{i}",
+                    "span_id": f"span{i}",
+                    "name": f"span_{i}",
+                    "service_name": "test",
+                    "start_time_ms": now - i * 10,
+                    "duration_ms": 5,
+                    "status": "OK",
+                    "attributes": {},
+                }
+            )
 
         spans = store.get_spans(limit=50)
         assert len(spans) == 50
@@ -100,16 +106,18 @@ class TestTelemetryStoreSpans:
         now = int(time.time() * 1000)
         # Add more than max capacity (2000)
         for i in range(2500):
-            store.add_span({
-                "trace_id": f"trace{i}",
-                "span_id": f"span{i}",
-                "name": f"span_{i}",
-                "service_name": "test",
-                "start_time_ms": now - i * 10,
-                "duration_ms": 5,
-                "status": "OK",
-                "attributes": {},
-            })
+            store.add_span(
+                {
+                    "trace_id": f"trace{i}",
+                    "span_id": f"span{i}",
+                    "name": f"span_{i}",
+                    "service_name": "test",
+                    "start_time_ms": now - i * 10,
+                    "duration_ms": 5,
+                    "status": "OK",
+                    "attributes": {},
+                }
+            )
 
         # Buffer should only keep latest 2000
         spans = store.get_spans(limit=3000)  # Request more than available
@@ -139,21 +147,25 @@ class TestTelemetryStoreMetrics:
 
         # Add metrics with different names
         for i in range(3):
-            store.add_metric_point({
-                "name": "modaltrace.pipeline.stage.duration",
-                "value": 40 + i * 5,
-                "timestamp_ms": now - (3 - i) * 100,
-                "attributes": {"modaltrace.pipeline.stage": "inference"},
-                "percentiles": {"p50": 40, "p95": 45, "p99": 50},
-            })
+            store.add_metric_point(
+                {
+                    "name": "modaltrace.pipeline.stage.duration",
+                    "value": 40 + i * 5,
+                    "timestamp_ms": now - (3 - i) * 100,
+                    "attributes": {"modaltrace.pipeline.stage": "inference"},
+                    "percentiles": {"p50": 40, "p95": 45, "p99": 50},
+                }
+            )
 
         for i in range(2):
-            store.add_metric_point({
-                "name": "modaltrace.frames.dropped",
-                "value": i,
-                "timestamp_ms": now - i * 100,
-                "attributes": {},
-            })
+            store.add_metric_point(
+                {
+                    "name": "modaltrace.frames.dropped",
+                    "value": i,
+                    "timestamp_ms": now - i * 100,
+                    "attributes": {},
+                }
+            )
 
         # Get only pipeline metrics
         pipeline_metrics = store.get_metric_series("modaltrace.pipeline.stage.duration")
@@ -164,12 +176,14 @@ class TestTelemetryStoreMetrics:
         """Test metrics are sorted by timestamp."""
         now = int(time.time() * 1000)
         for i in range(5):
-            store.add_metric_point({
-                "name": "test.metric",
-                "value": i * 10,
-                "timestamp_ms": now - (5 - i) * 100,
-                "attributes": {},
-            })
+            store.add_metric_point(
+                {
+                    "name": "test.metric",
+                    "value": i * 10,
+                    "timestamp_ms": now - (5 - i) * 100,
+                    "attributes": {},
+                }
+            )
 
         metrics = store.get_metric_series("test.metric")
         # Should be sorted oldest first
@@ -180,12 +194,14 @@ class TestTelemetryStoreMetrics:
         """Test filtering metrics by timestamp."""
         now = int(time.time() * 1000)
         for i in range(10):
-            store.add_metric_point({
-                "name": "test.metric",
-                "value": i,
-                "timestamp_ms": now - (10 - i) * 100,
-                "attributes": {},
-            })
+            store.add_metric_point(
+                {
+                    "name": "test.metric",
+                    "value": i,
+                    "timestamp_ms": now - (10 - i) * 100,
+                    "attributes": {},
+                }
+            )
 
         cutoff = now - 500
         metrics = store.get_metric_series("test.metric", since_ms=cutoff)
@@ -198,12 +214,14 @@ class TestTelemetryStoreMetrics:
         now = int(time.time() * 1000)
         # Add more than max capacity (10000)
         for i in range(12000):
-            store.add_metric_point({
-                "name": f"test.metric.{i % 10}",
-                "value": i % 100,
-                "timestamp_ms": now - i,
-                "attributes": {},
-            })
+            store.add_metric_point(
+                {
+                    "name": f"test.metric.{i % 10}",
+                    "value": i % 100,
+                    "timestamp_ms": now - i,
+                    "attributes": {},
+                }
+            )
 
         # Total metrics should not exceed 10000
         total_metrics = 0
@@ -219,18 +237,22 @@ class TestTelemetryStoreGPU:
 
     def test_get_latest_gpu_single_device(self, store):
         """Test getting latest GPU metrics for single device."""
-        store.add_metric_point({
-            "name": "modaltrace.gpu.utilization",
-            "value": 0.75,
-            "timestamp_ms": 1000,
-            "attributes": {"modaltrace.gpu.device_index": 0},
-        })
-        store.add_metric_point({
-            "name": "modaltrace.gpu.memory.used",
-            "value": 8.5,
-            "timestamp_ms": 1000,
-            "attributes": {"modaltrace.gpu.device_index": 0},
-        })
+        store.add_metric_point(
+            {
+                "name": "modaltrace.gpu.utilization",
+                "value": 0.75,
+                "timestamp_ms": 1000,
+                "attributes": {"modaltrace.gpu.device_index": 0},
+            }
+        )
+        store.add_metric_point(
+            {
+                "name": "modaltrace.gpu.memory.used",
+                "value": 8.5,
+                "timestamp_ms": 1000,
+                "attributes": {"modaltrace.gpu.device_index": 0},
+            }
+        )
 
         gpu_data = store.get_latest_gpu()
         assert 0 in gpu_data
@@ -240,12 +262,14 @@ class TestTelemetryStoreGPU:
     def test_get_latest_gpu_multiple_devices(self, store):
         """Test GPU data for multiple devices."""
         for device_id in [0, 1, 2]:
-            store.add_metric_point({
-                "name": "modaltrace.gpu.utilization",
-                "value": 0.5 + device_id * 0.1,
-                "timestamp_ms": 1000,
-                "attributes": {"modaltrace.gpu.device_index": device_id},
-            })
+            store.add_metric_point(
+                {
+                    "name": "modaltrace.gpu.utilization",
+                    "value": 0.5 + device_id * 0.1,
+                    "timestamp_ms": 1000,
+                    "attributes": {"modaltrace.gpu.device_index": device_id},
+                }
+            )
 
         gpu_data = store.get_latest_gpu()
         assert len(gpu_data) == 3
@@ -253,18 +277,22 @@ class TestTelemetryStoreGPU:
 
     def test_get_latest_gpu_ignores_non_gpu_metrics(self, store):
         """Test that non-GPU metrics are excluded."""
-        store.add_metric_point({
-            "name": "modaltrace.gpu.utilization",
-            "value": 0.75,
-            "timestamp_ms": 1000,
-            "attributes": {"modaltrace.gpu.device_index": 0},
-        })
-        store.add_metric_point({
-            "name": "modaltrace.frames.dropped",
-            "value": 1,
-            "timestamp_ms": 1000,
-            "attributes": {},
-        })
+        store.add_metric_point(
+            {
+                "name": "modaltrace.gpu.utilization",
+                "value": 0.75,
+                "timestamp_ms": 1000,
+                "attributes": {"modaltrace.gpu.device_index": 0},
+            }
+        )
+        store.add_metric_point(
+            {
+                "name": "modaltrace.frames.dropped",
+                "value": 1,
+                "timestamp_ms": 1000,
+                "attributes": {},
+            }
+        )
 
         gpu_data = store.get_latest_gpu()
         assert 0 in gpu_data
@@ -293,14 +321,16 @@ class TestTelemetryStoreLogs:
         """Test logs are returned newest first."""
         now = int(time.time() * 1000)
         for i in range(3):
-            store.add_log({
-                "timestamp_ms": now - (3 - i) * 100,
-                "severity": "INFO",
-                "body": f"Message {i}",
-                "trace_id": None,
-                "span_id": None,
-                "attributes": {},
-            })
+            store.add_log(
+                {
+                    "timestamp_ms": now - (3 - i) * 100,
+                    "severity": "INFO",
+                    "body": f"Message {i}",
+                    "trace_id": None,
+                    "span_id": None,
+                    "attributes": {},
+                }
+            )
 
         logs = store.get_logs()
         # Should be ordered newest first
@@ -312,14 +342,16 @@ class TestTelemetryStoreLogs:
         now = int(time.time() * 1000)
         severities = ["ERROR", "WARN", "INFO", "DEBUG"]
         for i, severity in enumerate(severities):
-            store.add_log({
-                "timestamp_ms": now - i * 100,
-                "severity": severity,
-                "body": f"{severity} message",
-                "trace_id": None,
-                "span_id": None,
-                "attributes": {},
-            })
+            store.add_log(
+                {
+                    "timestamp_ms": now - i * 100,
+                    "severity": severity,
+                    "body": f"{severity} message",
+                    "trace_id": None,
+                    "span_id": None,
+                    "attributes": {},
+                }
+            )
 
         # Get only ERROR logs
         error_logs = store.get_logs(level="ERROR")
@@ -330,14 +362,16 @@ class TestTelemetryStoreLogs:
         """Test filtering logs by timestamp."""
         now = int(time.time() * 1000)
         for i in range(5):
-            store.add_log({
-                "timestamp_ms": now - (5 - i) * 100,
-                "severity": "INFO",
-                "body": f"Message {i}",
-                "trace_id": None,
-                "span_id": None,
-                "attributes": {},
-            })
+            store.add_log(
+                {
+                    "timestamp_ms": now - (5 - i) * 100,
+                    "severity": "INFO",
+                    "body": f"Message {i}",
+                    "trace_id": None,
+                    "span_id": None,
+                    "attributes": {},
+                }
+            )
 
         cutoff = now - 300
         logs = store.get_logs(since_ms=cutoff)
@@ -349,14 +383,16 @@ class TestTelemetryStoreLogs:
         """Test limiting log count."""
         now = int(time.time() * 1000)
         for i in range(150):
-            store.add_log({
-                "timestamp_ms": now - i * 10,
-                "severity": "INFO",
-                "body": f"Message {i}",
-                "trace_id": None,
-                "span_id": None,
-                "attributes": {},
-            })
+            store.add_log(
+                {
+                    "timestamp_ms": now - i * 10,
+                    "severity": "INFO",
+                    "body": f"Message {i}",
+                    "trace_id": None,
+                    "span_id": None,
+                    "attributes": {},
+                }
+            )
 
         logs = store.get_logs(limit=100)
         assert len(logs) == 100
@@ -366,14 +402,16 @@ class TestTelemetryStoreLogs:
         now = int(time.time() * 1000)
         # Add more than max capacity (5000)
         for i in range(6000):
-            store.add_log({
-                "timestamp_ms": now - i,
-                "severity": "INFO",
-                "body": f"Message {i}",
-                "trace_id": None,
-                "span_id": None,
-                "attributes": {},
-            })
+            store.add_log(
+                {
+                    "timestamp_ms": now - i,
+                    "severity": "INFO",
+                    "body": f"Message {i}",
+                    "trace_id": None,
+                    "span_id": None,
+                    "attributes": {},
+                }
+            )
 
         logs = store.get_logs(limit=10000)  # Request more than available
         assert len(logs) <= 5000
@@ -388,16 +426,18 @@ class TestTelemetryStoreThreadSafety:
 
         def add_spans(start_idx, count):
             for i in range(start_idx, start_idx + count):
-                store.add_span({
-                    "trace_id": f"trace{i}",
-                    "span_id": f"span{i}",
-                    "name": f"span_{i}",
-                    "service_name": "test",
-                    "start_time_ms": 1000 + i,
-                    "duration_ms": 10,
-                    "status": "OK",
-                    "attributes": {},
-                })
+                store.add_span(
+                    {
+                        "trace_id": f"trace{i}",
+                        "span_id": f"span{i}",
+                        "name": f"span_{i}",
+                        "service_name": "test",
+                        "start_time_ms": 1000 + i,
+                        "duration_ms": 10,
+                        "status": "OK",
+                        "attributes": {},
+                    }
+                )
 
         threads = []
         for i in range(4):
@@ -419,22 +459,26 @@ class TestTelemetryStoreThreadSafety:
 
         def add_data():
             for i in range(100):
-                store.add_span({
-                    "trace_id": f"trace{i}",
-                    "span_id": f"span{i}",
-                    "name": f"span_{i}",
-                    "service_name": "test",
-                    "start_time_ms": 1000 + i,
-                    "duration_ms": 10,
-                    "status": "OK",
-                    "attributes": {},
-                })
-                store.add_metric_point({
-                    "name": "test.metric",
-                    "value": i,
-                    "timestamp_ms": 1000 + i,
-                    "attributes": {},
-                })
+                store.add_span(
+                    {
+                        "trace_id": f"trace{i}",
+                        "span_id": f"span{i}",
+                        "name": f"span_{i}",
+                        "service_name": "test",
+                        "start_time_ms": 1000 + i,
+                        "duration_ms": 10,
+                        "status": "OK",
+                        "attributes": {},
+                    }
+                )
+                store.add_metric_point(
+                    {
+                        "name": "test.metric",
+                        "value": i,
+                        "timestamp_ms": 1000 + i,
+                        "attributes": {},
+                    }
+                )
 
         def read_data():
             for _ in range(50):

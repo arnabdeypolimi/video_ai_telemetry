@@ -49,9 +49,7 @@ class TelemetryStore:
         # Return newest first, limited to count
         return sorted(spans, key=lambda s: s.get("start_time_ms", 0), reverse=True)[:limit]
 
-    def get_metric_series(
-        self, name: str, since_ms: int | None = None
-    ) -> list[dict]:
+    def get_metric_series(self, name: str, since_ms: int | None = None) -> list[dict]:
         """Get metric time series for a given metric name."""
         with self._lock:
             points = list(self._metric_points)
@@ -70,10 +68,7 @@ class TelemetryStore:
             points = list(self._metric_points)
 
         # Filter to GPU metrics only
-        gpu_points = [
-            p for p in points
-            if p.get("name", "").startswith("modaltrace.gpu.")
-        ]
+        gpu_points = [p for p in points if p.get("name", "").startswith("modaltrace.gpu.")]
 
         # Group by device_index and keep latest per metric per device
         gpu_data: dict[int, dict[str, Any]] = {}

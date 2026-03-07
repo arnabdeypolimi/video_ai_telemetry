@@ -335,9 +335,7 @@ class TestLogsParsing:
         log_record.attributes.add(
             key="error.type", value=common_pb2.AnyValue(string_value="ValueError")
         )
-        log_record.attributes.add(
-            key="error.code", value=common_pb2.AnyValue(int_value=500)
-        )
+        log_record.attributes.add(key="error.code", value=common_pb2.AnyValue(int_value=500))
 
         body = logs_data.SerializeToString()
         records = parse_logs_request(body)

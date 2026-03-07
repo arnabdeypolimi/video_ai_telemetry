@@ -36,16 +36,18 @@ class TestSpansEndpoint:
     def test_get_spans_with_data(self, client):
         """Test getting spans with data in store."""
         # Add test data directly to store
-        store.add_span({
-            "trace_id": "abc123",
-            "span_id": "def456",
-            "name": "test_span",
-            "service_name": "test-service",
-            "start_time_ms": 1000,
-            "duration_ms": 50,
-            "status": "OK",
-            "attributes": {"key": "value"},
-        })
+        store.add_span(
+            {
+                "trace_id": "abc123",
+                "span_id": "def456",
+                "name": "test_span",
+                "service_name": "test-service",
+                "start_time_ms": 1000,
+                "duration_ms": 50,
+                "status": "OK",
+                "attributes": {"key": "value"},
+            }
+        )
 
         response = client.get("/api/spans")
         assert response.status_code == 200
@@ -56,20 +58,23 @@ class TestSpansEndpoint:
     def test_get_spans_with_limit(self, client):
         """Test limiting span results."""
         import time
+
         now = int(time.time() * 1000)
 
         # Add 10 spans
         for i in range(10):
-            store.add_span({
-                "trace_id": f"trace{i}",
-                "span_id": f"span{i}",
-                "name": f"span_{i}",
-                "service_name": "test",
-                "start_time_ms": now - i * 100,
-                "duration_ms": 10,
-                "status": "OK",
-                "attributes": {},
-            })
+            store.add_span(
+                {
+                    "trace_id": f"trace{i}",
+                    "span_id": f"span{i}",
+                    "name": f"span_{i}",
+                    "service_name": "test",
+                    "start_time_ms": now - i * 100,
+                    "duration_ms": 10,
+                    "status": "OK",
+                    "attributes": {},
+                }
+            )
 
         response = client.get("/api/spans?limit=5")
         assert response.status_code == 200
@@ -79,20 +84,23 @@ class TestSpansEndpoint:
     def test_get_spans_with_since_ms(self, client):
         """Test filtering spans by timestamp."""
         import time
+
         now = int(time.time() * 1000)
 
         # Add spans with different timestamps
         for i in range(5):
-            store.add_span({
-                "trace_id": f"trace{i}",
-                "span_id": f"span{i}",
-                "name": f"span_{i}",
-                "service_name": "test",
-                "start_time_ms": now - (5 - i) * 100,
-                "duration_ms": 10,
-                "status": "OK",
-                "attributes": {},
-            })
+            store.add_span(
+                {
+                    "trace_id": f"trace{i}",
+                    "span_id": f"span{i}",
+                    "name": f"span_{i}",
+                    "service_name": "test",
+                    "start_time_ms": now - (5 - i) * 100,
+                    "duration_ms": 10,
+                    "status": "OK",
+                    "attributes": {},
+                }
+            )
 
         cutoff = now - 200
         response = client.get(f"/api/spans?since_ms={cutoff}")
@@ -114,13 +122,15 @@ class TestMetricsEndpoint:
 
     def test_get_metric_with_data(self, client):
         """Test getting metric with data."""
-        store.add_metric_point({
-            "name": "modaltrace.pipeline.stage.duration",
-            "value": 45.5,
-            "timestamp_ms": 1000,
-            "attributes": {"modaltrace.pipeline.stage": "inference"},
-            "percentiles": {"p50": 40, "p95": 45.5, "p99": 50},
-        })
+        store.add_metric_point(
+            {
+                "name": "modaltrace.pipeline.stage.duration",
+                "value": 45.5,
+                "timestamp_ms": 1000,
+                "attributes": {"modaltrace.pipeline.stage": "inference"},
+                "percentiles": {"p50": 40, "p95": 45.5, "p99": 50},
+            }
+        )
 
         response = client.get("/api/metrics/modaltrace.pipeline.stage.duration")
         assert response.status_code == 200
@@ -130,12 +140,14 @@ class TestMetricsEndpoint:
 
     def test_get_metric_name_conversion(self, client):
         """Test metric name conversion from double underscore to dot."""
-        store.add_metric_point({
-            "name": "modaltrace.gpu.utilization",
-            "value": 0.75,
-            "timestamp_ms": 1000,
-            "attributes": {},
-        })
+        store.add_metric_point(
+            {
+                "name": "modaltrace.gpu.utilization",
+                "value": 0.75,
+                "timestamp_ms": 1000,
+                "attributes": {},
+            }
+        )
 
         # Request with double underscore (URL encoding)
         response = client.get("/api/metrics/modaltrace__gpu__utilization")
@@ -147,16 +159,19 @@ class TestMetricsEndpoint:
     def test_get_metric_with_since_ms(self, client):
         """Test filtering metrics by timestamp."""
         import time
+
         now = int(time.time() * 1000)
 
         # Add multiple metrics
         for i in range(5):
-            store.add_metric_point({
-                "name": "test.metric",
-                "value": i * 10,
-                "timestamp_ms": now - (5 - i) * 100,
-                "attributes": {},
-            })
+            store.add_metric_point(
+                {
+                    "name": "test.metric",
+                    "value": i * 10,
+                    "timestamp_ms": now - (5 - i) * 100,
+                    "attributes": {},
+                }
+            )
 
         cutoff = now - 300
         response = client.get(f"/api/metrics/test.metric?since_ms={cutoff}")
@@ -168,14 +183,16 @@ class TestMetricsEndpoint:
 
     def test_get_metric_with_percentiles(self, client):
         """Test metrics with percentile data."""
-        store.add_metric_point({
-            "name": "modaltrace.pipeline.stage.duration",
-            "value": 45.5,
-            "timestamp_ms": 1000,
-            "attributes": {"modaltrace.pipeline.stage": "inference"},
-            "percentiles": {"p50": 40, "p95": 45.5, "p99": 50},
-            "count": 100,
-        })
+        store.add_metric_point(
+            {
+                "name": "modaltrace.pipeline.stage.duration",
+                "value": 45.5,
+                "timestamp_ms": 1000,
+                "attributes": {"modaltrace.pipeline.stage": "inference"},
+                "percentiles": {"p50": 40, "p95": 45.5, "p99": 50},
+                "count": 100,
+            }
+        )
 
         response = client.get("/api/metrics/modaltrace.pipeline.stage.duration")
         assert response.status_code == 200
@@ -195,18 +212,22 @@ class TestGPUEndpoint:
 
     def test_get_gpu_single_device(self, client):
         """Test GPU data for single device."""
-        store.add_metric_point({
-            "name": "modaltrace.gpu.utilization",
-            "value": 0.75,
-            "timestamp_ms": 1000,
-            "attributes": {"modaltrace.gpu.device_index": 0},
-        })
-        store.add_metric_point({
-            "name": "modaltrace.gpu.memory.used",
-            "value": 8.5,
-            "timestamp_ms": 1000,
-            "attributes": {"modaltrace.gpu.device_index": 0},
-        })
+        store.add_metric_point(
+            {
+                "name": "modaltrace.gpu.utilization",
+                "value": 0.75,
+                "timestamp_ms": 1000,
+                "attributes": {"modaltrace.gpu.device_index": 0},
+            }
+        )
+        store.add_metric_point(
+            {
+                "name": "modaltrace.gpu.memory.used",
+                "value": 8.5,
+                "timestamp_ms": 1000,
+                "attributes": {"modaltrace.gpu.device_index": 0},
+            }
+        )
 
         response = client.get("/api/gpu")
         assert response.status_code == 200
@@ -218,18 +239,22 @@ class TestGPUEndpoint:
     def test_get_gpu_multiple_devices(self, client):
         """Test GPU data for multiple devices."""
         for device_id in [0, 1, 2]:
-            store.add_metric_point({
-                "name": "modaltrace.gpu.utilization",
-                "value": 0.5 + device_id * 0.1,
-                "timestamp_ms": 1000,
-                "attributes": {"modaltrace.gpu.device_index": device_id},
-            })
-            store.add_metric_point({
-                "name": "modaltrace.gpu.temperature",
-                "value": 60 + device_id * 5,
-                "timestamp_ms": 1000,
-                "attributes": {"modaltrace.gpu.device_index": device_id},
-            })
+            store.add_metric_point(
+                {
+                    "name": "modaltrace.gpu.utilization",
+                    "value": 0.5 + device_id * 0.1,
+                    "timestamp_ms": 1000,
+                    "attributes": {"modaltrace.gpu.device_index": device_id},
+                }
+            )
+            store.add_metric_point(
+                {
+                    "name": "modaltrace.gpu.temperature",
+                    "value": 60 + device_id * 5,
+                    "timestamp_ms": 1000,
+                    "attributes": {"modaltrace.gpu.device_index": device_id},
+                }
+            )
 
         response = client.get("/api/gpu")
         assert response.status_code == 200
@@ -242,20 +267,24 @@ class TestGPUEndpoint:
         """Test that latest values are returned."""
         device_id = 0
         # Add old value
-        store.add_metric_point({
-            "name": "modaltrace.gpu.utilization",
-            "value": 0.5,
-            "timestamp_ms": 1000,
-            "attributes": {"modaltrace.gpu.device_index": device_id},
-        })
+        store.add_metric_point(
+            {
+                "name": "modaltrace.gpu.utilization",
+                "value": 0.5,
+                "timestamp_ms": 1000,
+                "attributes": {"modaltrace.gpu.device_index": device_id},
+            }
+        )
 
         # Add newer value
-        store.add_metric_point({
-            "name": "modaltrace.gpu.utilization",
-            "value": 0.8,
-            "timestamp_ms": 2000,
-            "attributes": {"modaltrace.gpu.device_index": device_id},
-        })
+        store.add_metric_point(
+            {
+                "name": "modaltrace.gpu.utilization",
+                "value": 0.8,
+                "timestamp_ms": 2000,
+                "attributes": {"modaltrace.gpu.device_index": device_id},
+            }
+        )
 
         response = client.get("/api/gpu")
         data = response.json()
@@ -274,14 +303,16 @@ class TestLogsEndpoint:
 
     def test_get_logs_with_data(self, client):
         """Test getting logs with data."""
-        store.add_log({
-            "timestamp_ms": 1000,
-            "severity": "INFO",
-            "body": "Test log message",
-            "trace_id": "abc123",
-            "span_id": "def456",
-            "attributes": {"key": "value"},
-        })
+        store.add_log(
+            {
+                "timestamp_ms": 1000,
+                "severity": "INFO",
+                "body": "Test log message",
+                "trace_id": "abc123",
+                "span_id": "def456",
+                "attributes": {"key": "value"},
+            }
+        )
 
         response = client.get("/api/logs")
         assert response.status_code == 200
@@ -292,18 +323,21 @@ class TestLogsEndpoint:
     def test_get_logs_with_level_filter(self, client):
         """Test filtering logs by severity level."""
         import time
+
         now = int(time.time() * 1000)
 
         # Add logs with different severity levels
         for severity in ["ERROR", "WARN", "INFO", "DEBUG"]:
-            store.add_log({
-                "timestamp_ms": now,
-                "severity": severity,
-                "body": f"{severity} message",
-                "trace_id": None,
-                "span_id": None,
-                "attributes": {},
-            })
+            store.add_log(
+                {
+                    "timestamp_ms": now,
+                    "severity": severity,
+                    "body": f"{severity} message",
+                    "trace_id": None,
+                    "span_id": None,
+                    "attributes": {},
+                }
+            )
 
         # Get only ERROR logs
         response = client.get("/api/logs?level=ERROR")
@@ -315,18 +349,21 @@ class TestLogsEndpoint:
     def test_get_logs_with_limit(self, client):
         """Test limiting log results."""
         import time
+
         now = int(time.time() * 1000)
 
         # Add 20 logs
         for i in range(20):
-            store.add_log({
-                "timestamp_ms": now - i * 100,
-                "severity": "INFO",
-                "body": f"Message {i}",
-                "trace_id": None,
-                "span_id": None,
-                "attributes": {},
-            })
+            store.add_log(
+                {
+                    "timestamp_ms": now - i * 100,
+                    "severity": "INFO",
+                    "body": f"Message {i}",
+                    "trace_id": None,
+                    "span_id": None,
+                    "attributes": {},
+                }
+            )
 
         response = client.get("/api/logs?limit=10")
         assert response.status_code == 200
@@ -336,18 +373,21 @@ class TestLogsEndpoint:
     def test_get_logs_with_since_ms(self, client):
         """Test filtering logs by timestamp."""
         import time
+
         now = int(time.time() * 1000)
 
         # Add logs with different timestamps
         for i in range(5):
-            store.add_log({
-                "timestamp_ms": now - (5 - i) * 100,
-                "severity": "INFO",
-                "body": f"Message {i}",
-                "trace_id": None,
-                "span_id": None,
-                "attributes": {},
-            })
+            store.add_log(
+                {
+                    "timestamp_ms": now - (5 - i) * 100,
+                    "severity": "INFO",
+                    "body": f"Message {i}",
+                    "trace_id": None,
+                    "span_id": None,
+                    "attributes": {},
+                }
+            )
 
         cutoff = now - 300
         response = client.get(f"/api/logs?since_ms={cutoff}")
@@ -403,16 +443,18 @@ class TestAPIDataStructures:
 
     def test_span_response_structure(self, client):
         """Test span response has expected structure."""
-        store.add_span({
-            "trace_id": "abc123",
-            "span_id": "def456",
-            "name": "test_span",
-            "service_name": "test-service",
-            "start_time_ms": 1000,
-            "duration_ms": 50,
-            "status": "OK",
-            "attributes": {"key": "value"},
-        })
+        store.add_span(
+            {
+                "trace_id": "abc123",
+                "span_id": "def456",
+                "name": "test_span",
+                "service_name": "test-service",
+                "start_time_ms": 1000,
+                "duration_ms": 50,
+                "status": "OK",
+                "attributes": {"key": "value"},
+            }
+        )
 
         response = client.get("/api/spans")
         data = response.json()
@@ -431,13 +473,15 @@ class TestAPIDataStructures:
 
     def test_metric_response_structure(self, client):
         """Test metric response has expected structure."""
-        store.add_metric_point({
-            "name": "test.metric",
-            "value": 42.5,
-            "timestamp_ms": 1000,
-            "attributes": {"stage": "inference"},
-            "percentiles": {"p50": 40, "p95": 42.5, "p99": 45},
-        })
+        store.add_metric_point(
+            {
+                "name": "test.metric",
+                "value": 42.5,
+                "timestamp_ms": 1000,
+                "attributes": {"stage": "inference"},
+                "percentiles": {"p50": 40, "p95": 42.5, "p99": 45},
+            }
+        )
 
         response = client.get("/api/metrics/test.metric")
         data = response.json()
@@ -452,14 +496,16 @@ class TestAPIDataStructures:
 
     def test_log_response_structure(self, client):
         """Test log response has expected structure."""
-        store.add_log({
-            "timestamp_ms": 1000,
-            "severity": "INFO",
-            "body": "Test message",
-            "trace_id": "abc123",
-            "span_id": "def456",
-            "attributes": {"key": "value"},
-        })
+        store.add_log(
+            {
+                "timestamp_ms": 1000,
+                "severity": "INFO",
+                "body": "Test message",
+                "trace_id": "abc123",
+                "span_id": "def456",
+                "attributes": {"key": "value"},
+            }
+        )
 
         response = client.get("/api/logs")
         data = response.json()

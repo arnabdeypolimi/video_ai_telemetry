@@ -17,13 +17,15 @@ class TestStatisticsCalculation:
 
         # Add 30 spans within last 5 seconds (should be 6 FPS)
         for i in range(30):
-            spans.append({
-                "name": f"frame_{i}",
-                "start_time_ms": now - (5000 - i * 160),  # Spread over 5 seconds
-                "duration_ms": 10,
-                "status": "OK",
-                "attributes": {},
-            })
+            spans.append(
+                {
+                    "name": f"frame_{i}",
+                    "start_time_ms": now - (5000 - i * 160),  # Spread over 5 seconds
+                    "duration_ms": 10,
+                    "status": "OK",
+                    "attributes": {},
+                }
+            )
 
         # Simulate JavaScript FPS calculation
         last_5s = now - 5000
@@ -299,6 +301,7 @@ class TestTimestampFormatting:
         ts_ms = 1234567890123  # Some arbitrary timestamp
 
         from datetime import datetime
+
         dt = datetime.fromtimestamp(ts_ms / 1000)
         time_str = dt.strftime("%H:%M:%S")
         ms_part = int((ts_ms % 1000) / 10)
