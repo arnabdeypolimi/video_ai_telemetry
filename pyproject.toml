@@ -50,7 +50,11 @@ dependencies = [
 pytorch = ["torch>=2.0.0"]
 gpu = ["pynvml>=11.5.0"]
 webrtc = ["aiortc>=1.9.0"]
-all = ["modaltrace[pytorch,gpu,webrtc]"]
+dashboard = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+]
+all = ["modaltrace[pytorch,gpu,webrtc,dashboard]"]
 dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
@@ -59,6 +63,7 @@ dev = [
     "ruff>=0.4.0",
     "mypy>=1.9.0",
     "pre-commit>=3.7.0",
+    "httpx>=0.26.0",
 ]
 
 [project.urls]

@@ -10,6 +10,7 @@ Welcome to **ModalTrace** - an open-source OpenTelemetry observability library f
 - **[Examples](Examples)** - Practical usage examples
 - **[Contributing](Contributing)** - How to contribute
 - **[FAQ](FAQ)** - Frequently asked questions
+- **[Comparison](https://github.com/arnabdeypolimi/video_ai_telemetry/blob/main/docs/COMPARISON.md)** - How ModalTrace compares to Langfuse, Datadog, W&B, and others
 
 ## What is ModalTrace?
 
@@ -45,6 +46,9 @@ Built-in scrubbing pipeline removes sensitive data from logs and attributes.
 📡 **OpenTelemetry Export**
 Native support for OTLP over HTTP and gRPC.
 
+📊 **Built-in Dashboard**
+Real-time telemetry visualization for local development (optional).
+
 ## Installation
 
 ```bash
@@ -54,7 +58,11 @@ pip install modaltrace
 For optional features:
 
 ```bash
-pip install modaltrace[pytorch,gpu,webrtc]
+# Install with dashboard for local development
+pip install modaltrace[dashboard]
+
+# Or install all features
+pip install modaltrace[all]
 ```
 
 ## Quick Start
