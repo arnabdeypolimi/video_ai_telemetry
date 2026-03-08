@@ -22,6 +22,13 @@ class TelemetryStore:
         self._metric_points = deque(maxlen=10000)
         self._logs = deque(maxlen=5000)
 
+    def clear(self) -> None:
+        """Clear all stored telemetry data."""
+        with self._lock:
+            self._spans.clear()
+            self._metric_points.clear()
+            self._logs.clear()
+
     def add_span(self, span: dict) -> None:
         """Add a span to the store."""
         with self._lock:

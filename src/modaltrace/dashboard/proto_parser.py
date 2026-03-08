@@ -279,17 +279,12 @@ def parse_logs_request(body: bytes) -> list[dict]:
                 # Map severity code to string
                 severity_map = {
                     0: "TRACE",
-                    1: "TRACE",
-                    2: "DEBUG",
-                    3: "DEBUG",
-                    4: "INFO",
-                    5: "INFO",
-                    6: "WARN",
-                    7: "WARN",
-                    8: "ERROR",
-                    9: "ERROR",
-                    10: "FATAL",
-                    11: "FATAL",
+                    1: "TRACE", 2: "TRACE", 3: "TRACE", 4: "TRACE",
+                    5: "DEBUG", 6: "DEBUG", 7: "DEBUG", 8: "DEBUG",
+                    9: "INFO", 10: "INFO", 11: "INFO", 12: "INFO",
+                    13: "WARN", 14: "WARN", 15: "WARN", 16: "WARN",
+                    17: "ERROR", 18: "ERROR", 19: "ERROR", 20: "ERROR",
+                    21: "FATAL", 22: "FATAL", 23: "FATAL", 24: "FATAL",
                 }
                 severity = severity_map.get(log_record.severity_number, "INFO")
 

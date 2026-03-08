@@ -288,7 +288,7 @@ class TestLogsParsing:
         log_record = scope_log.log_records.add()
 
         log_record.time_unix_nano = 1000000000
-        log_record.severity_number = 4  # INFO
+        log_record.severity_number = 9  # INFO (OTLP: 9-12)
         log_record.body.string_value = "Test log message"
 
         body = logs_data.SerializeToString()
@@ -348,10 +348,10 @@ class TestLogsParsing:
     def test_parse_log_severity_levels(self):
         """Test parsing logs with different severity levels."""
         severity_levels = [
-            (4, "INFO"),
-            (6, "WARN"),
-            (8, "ERROR"),
-            (10, "FATAL"),
+            (9, "INFO"),    # OTLP INFO  = 9-12
+            (13, "WARN"),   # OTLP WARN  = 13-16
+            (17, "ERROR"),  # OTLP ERROR = 17-20
+            (21, "FATAL"),  # OTLP FATAL = 21-24
         ]
 
         for severity_num, severity_name in severity_levels:

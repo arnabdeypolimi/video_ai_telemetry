@@ -15,13 +15,9 @@ def client():
 @pytest.fixture(autouse=True)
 def clear_store():
     """Clear the store before each test."""
-    store._spans.clear()
-    store._metric_points.clear()
-    store._logs.clear()
+    store.clear()
     yield
-    store._spans.clear()
-    store._metric_points.clear()
-    store._logs.clear()
+    store.clear()
 
 
 class TestSpansEndpoint:

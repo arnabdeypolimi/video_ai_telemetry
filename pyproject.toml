@@ -53,7 +53,6 @@ webrtc = ["aiortc>=1.9.0"]
 dashboard = [
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.29.0",
-    "httpx>=0.26.0",
 ]
 all = ["modaltrace[pytorch,gpu,webrtc,dashboard]"]
 dev = [
@@ -64,6 +63,7 @@ dev = [
     "ruff>=0.4.0",
     "mypy>=1.9.0",
     "pre-commit>=3.7.0",
+    "httpx>=0.26.0",
 ]
 
 [project.urls]
