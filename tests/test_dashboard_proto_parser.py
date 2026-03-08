@@ -348,8 +348,8 @@ class TestLogsParsing:
     def test_parse_log_severity_levels(self):
         """Test parsing logs with different severity levels."""
         severity_levels = [
-            (9, "INFO"),    # OTLP INFO  = 9-12
-            (13, "WARN"),   # OTLP WARN  = 13-16
+            (9, "INFO"),  # OTLP INFO  = 9-12
+            (13, "WARN"),  # OTLP WARN  = 13-16
             (17, "ERROR"),  # OTLP ERROR = 17-20
             (21, "FATAL"),  # OTLP FATAL = 21-24
         ]
