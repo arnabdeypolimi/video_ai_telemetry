@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      tag_created: ${{ steps.tag_check.outputs.exists == 'false' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -71,3 +73,9 @@ jobs:
           ### Testing
           - Comprehensive test suite covering API, frontend data, proto parsing, and store logic" \
             --latest
+
+  publish:
+    needs: tag-and-release
+    if: needs.tag-and-release.outputs.tag_created == 'true'
+    uses: ./.github/workflows/publish.yml
+    secrets: inherit
