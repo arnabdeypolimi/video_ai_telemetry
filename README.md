@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="docs/logo.svg" alt="ModalTrace" width="320" />
+<img src="https://raw.githubusercontent.com/arnabdeypolimi/video_ai_telemetry/main/docs/logo.svg" alt="ModalTrace" width="320" />
 
 <br/>
 
@@ -27,7 +27,7 @@ Built for **production AI systems**, ModalTrace helps you understand latency bot
 
 <div align="center">
 
-![ModalTrace Dashboard](docs/dashboard-demo.gif)
+![ModalTrace Dashboard](https://raw.githubusercontent.com/arnabdeypolimi/video_ai_telemetry/main/docs/dashboard-demo.gif)
 
 </div>
 
