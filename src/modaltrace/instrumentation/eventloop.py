@@ -4,7 +4,9 @@ import asyncio
 import logging
 import time
 
-logger = logging.getLogger("modaltrace.eventloop")
+from modaltrace.conventions.namespaces import NAMESPACE as _NS
+
+logger = logging.getLogger(f"{_NS}.eventloop")
 
 _original_handle_run = None
 _warning_callback = None

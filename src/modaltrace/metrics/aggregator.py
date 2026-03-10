@@ -12,9 +12,10 @@ import logging
 import threading
 from dataclasses import dataclass, field
 
+from modaltrace.conventions.namespaces import NAMESPACE as _NS
 from modaltrace.metrics.instruments import MetricInstruments
 
-logger = logging.getLogger("modaltrace.aggregator")
+logger = logging.getLogger(f"{_NS}.aggregator")
 
 
 @dataclass

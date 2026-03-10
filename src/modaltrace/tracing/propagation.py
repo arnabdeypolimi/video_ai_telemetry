@@ -21,7 +21,9 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 
 from opentelemetry import context as otel_context
 
-logger = logging.getLogger("modaltrace.propagation")
+from modaltrace.conventions.namespaces import NAMESPACE as _NS
+
+logger = logging.getLogger(f"{_NS}.propagation")
 _original_thread_submit = None
 _original_process_submit = None
 

@@ -13,8 +13,9 @@ import time
 from typing import Any
 
 from modaltrace.conventions.attributes import InferenceAttributes
+from modaltrace.conventions.namespaces import NAMESPACE as _NS
 
-logger = logging.getLogger("modaltrace.pytorch")
+logger = logging.getLogger(f"{_NS}.pytorch")
 
 _original_module_call = None
 _tracer = None

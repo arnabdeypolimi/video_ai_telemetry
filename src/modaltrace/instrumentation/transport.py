@@ -5,8 +5,9 @@ import logging
 from typing import Any
 
 from modaltrace.conventions.attributes import TransportAttributes
+from modaltrace.conventions.namespaces import NAMESPACE as _NS
 
-logger = logging.getLogger("modaltrace.transport")
+logger = logging.getLogger(f"{_NS}.transport")
 
 
 class WebRTCMetricsAdapter:
@@ -20,16 +21,16 @@ class WebRTCMetricsAdapter:
     def start(self):
         if self._meter:
             self._histograms = {
-                "rtt": self._meter.create_histogram("modaltrace.transport.rtt", unit="ms"),
-                "jitter": self._meter.create_histogram("modaltrace.transport.jitter", unit="ms"),
+                "rtt": self._meter.create_histogram(f"{_NS}.transport.rtt", unit="ms"),
+                "jitter": self._meter.create_histogram(f"{_NS}.transport.jitter", unit="ms"),
                 "packet_loss": self._meter.create_histogram(
-                    "modaltrace.transport.packet_loss", unit="%"
+                    f"{_NS}.transport.packet_loss", unit="%"
                 ),
                 "frame_rate": self._meter.create_histogram(
-                    "modaltrace.transport.frame_rate", unit="fps"
+                    f"{_NS}.transport.frame_rate", unit="fps"
                 ),
                 "bitrate": self._meter.create_histogram(
-                    "modaltrace.transport.bitrate", unit="kbps"
+                    f"{_NS}.transport.bitrate", unit="kbps"
                 ),
             }
         try:

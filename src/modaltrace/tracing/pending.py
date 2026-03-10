@@ -15,8 +15,9 @@ from opentelemetry.sdk.trace import ReadableSpan, SpanProcessor
 from opentelemetry.sdk.trace.export import SpanExporter
 
 from modaltrace.conventions.attributes import PipelineAttributes
+from modaltrace.conventions.namespaces import NAMESPACE as _NS
 
-logger = logging.getLogger("modaltrace.pending")
+logger = logging.getLogger(f"{_NS}.pending")
 
 
 def _make_pending_snapshot(span: ReadableSpan, now_ns: int) -> ReadableSpan:
