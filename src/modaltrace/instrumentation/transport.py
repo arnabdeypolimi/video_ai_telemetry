@@ -29,9 +29,7 @@ class WebRTCMetricsAdapter:
                 "frame_rate": self._meter.create_histogram(
                     f"{_NS}.transport.frame_rate", unit="fps"
                 ),
-                "bitrate": self._meter.create_histogram(
-                    f"{_NS}.transport.bitrate", unit="kbps"
-                ),
+                "bitrate": self._meter.create_histogram(f"{_NS}.transport.bitrate", unit="kbps"),
             }
         try:
             self._task = asyncio.ensure_future(self._poll_loop())
