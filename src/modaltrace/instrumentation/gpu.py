@@ -14,8 +14,9 @@ from typing import Any
 from opentelemetry.metrics import Observation
 
 from modaltrace.conventions.attributes import GPUAttributes
+from modaltrace.conventions.namespaces import NAMESPACE as _NS
 
-logger = logging.getLogger("modaltrace.gpu")
+logger = logging.getLogger(f"{_NS}.gpu")
 
 
 @dataclass
@@ -79,7 +80,7 @@ class GPUMonitor:
         if not self._handles:
             return False
 
-        self._thread = threading.Thread(target=self._poll_loop, daemon=True, name="modaltrace-gpu")
+        self._thread = threading.Thread(target=self._poll_loop, daemon=True, name=f"{_NS}-gpu")
         self._thread.start()
         return True
 
@@ -162,13 +163,13 @@ class GPUMonitor:
             return callback
 
         gauge_map = {
-            "modaltrace.gpu.utilization": "utilization_pct",
-            "modaltrace.gpu.memory.utilization": "memory_utilization_pct",
-            "modaltrace.gpu.memory.used": "memory_used_mb",
-            "modaltrace.gpu.memory.free": "memory_free_mb",
-            "modaltrace.gpu.memory.total": "memory_total_mb",
-            "modaltrace.gpu.temperature": "temperature_c",
-            "modaltrace.gpu.power.draw": "power_w",
+            f"{_NS}.gpu.utilization": "utilization_pct",
+            f"{_NS}.gpu.memory.utilization": "memory_utilization_pct",
+            f"{_NS}.gpu.memory.used": "memory_used_mb",
+            f"{_NS}.gpu.memory.free": "memory_free_mb",
+            f"{_NS}.gpu.memory.total": "memory_total_mb",
+            f"{_NS}.gpu.temperature": "temperature_c",
+            f"{_NS}.gpu.power.draw": "power_w",
         }
 
         for metric_name, attr_name in gauge_map.items():

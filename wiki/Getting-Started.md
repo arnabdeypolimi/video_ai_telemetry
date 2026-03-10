@@ -2,53 +2,37 @@
 
 ## Installation
 
-### Basic Installation
-
 ```bash
 pip install modaltrace
 ```
 
-### With Optional Features
+Optional extras:
 
 ```bash
-# PyTorch instrumentation
-pip install modaltrace[pytorch]
-
-# GPU monitoring
-pip install modaltrace[gpu]
-
-# WebRTC monitoring
-pip install modaltrace[webrtc]
-
-# Built-in dashboard (local development)
-pip install modaltrace[dashboard]
-
-# All features
-pip install modaltrace[all]
+pip install modaltrace[pytorch]    # PyTorch instrumentation
+pip install modaltrace[gpu]        # GPU monitoring
+pip install modaltrace[webrtc]     # WebRTC monitoring
+pip install modaltrace[dashboard]  # Built-in dashboard
+pip install modaltrace[all]        # Everything
 ```
 
-## Quick Start (5 minutes)
+## Quick Start
 
-### 1. Initialize ModalTrace
+### 1. Initialize
 
 ```python
 from modaltrace import ModalTraceSDK
 
-# Create and start SDK
 sdk = ModalTraceSDK()
 sdk.start()
 
 try:
-    # Your application code here
-    pass
+    pass  # your application code
 finally:
-    # Shutdown and flush telemetry
     sdk.shutdown()
 ```
 
-### 2. Configure (Optional)
-
-Set environment variables or pass configuration:
+### 2. Configure
 
 ```python
 from modaltrace import ModalTraceSDK, ModalTraceConfig
@@ -65,7 +49,7 @@ sdk = ModalTraceSDK(config)
 sdk.start()
 ```
 
-Or use environment variables:
+Or via environment variables:
 
 ```bash
 export MODALTRACE_SERVICE_NAME=my-pipeline
@@ -83,7 +67,6 @@ tracer = get_tracer(__name__)
 
 with tracer.start_as_current_span("process_frame") as span:
     span.set_attribute("frame_id", 42)
-    # Your code here
     result = process(frame)
 ```
 
@@ -94,7 +77,6 @@ from modaltrace import get_meter
 
 meter = get_meter(__name__)
 latency_histogram = meter.create_histogram("pipeline.latency", unit="ms")
-
 latency_histogram.record(12.5)
 ```
 
@@ -108,46 +90,32 @@ error("Processing failed", error_code=500)
 warning("High latency detected", latency_ms=150)
 ```
 
+---
+
 ## Viewing Telemetry
 
-### Option 1: ModalTrace Built-in Dashboard (Recommended for Local Development)
-
-Launch the dashboard server:
+### Option 1: Built-in Dashboard (local development)
 
 ```python
 from modaltrace import ModalTraceSDK, ModalTraceConfig
 from modaltrace.dashboard import DashboardServer
 
-# Start dashboard
 dashboard = DashboardServer()
 dashboard.start()  # http://localhost:8000
 
-# Configure SDK to send telemetry to dashboard
 config = ModalTraceConfig(
     service_name="my-pipeline",
     otlp_endpoint="http://localhost:4318",
-    pytorch_instrumentation=True,
-    gpu_monitoring=True,
 )
-
 sdk = ModalTraceSDK(config)
 sdk.start()
-
-# Your code here...
-# Open http://localhost:8000 to see real-time telemetry
 ```
 
-The dashboard displays:
-- **Stats Panel**: FPS, latency percentiles, GPU metrics, A/V drift
-- **Pipeline Chart**: Multi-stage latency trends
-- **GPU Metrics**: Device utilization, memory, temperature, power
-- **Trace Explorer**: Recent spans with expandable attributes
-- **Log Viewer**: Structured logs with severity filtering
+The dashboard shows: FPS, latency percentiles, GPU metrics, A/V drift, pipeline latency chart, trace explorer, and log viewer.
 
-### Option 2: OpenTelemetry Backend (Recommended for Production)
+### Option 2: Jaeger (local development)
 
 ```bash
-# Start Jaeger with Docker
 docker run -d \
   --name jaeger \
   -p 4318:4318 \
@@ -155,22 +123,14 @@ docker run -d \
   jaegertracing/all-in-one:latest
 ```
 
-Then run your application:
-
 ```python
-from modaltrace import ModalTraceSDK
-
-sdk = ModalTraceSDK()  # Uses localhost:4318 by default
+sdk = ModalTraceSDK()  # uses localhost:4318 by default
 sdk.start()
-
-# Your code here
-
-sdk.shutdown()
 ```
 
-Access traces at: `http://localhost:16686`
+Access traces at `http://localhost:16686`.
 
-### Option 2: Docker Compose
+### Option 3: Docker Compose
 
 ```yaml
 version: '3'
@@ -178,8 +138,8 @@ services:
   jaeger:
     image: jaegertracing/all-in-one:latest
     ports:
-      - "4318:4318"  # OTLP HTTP
-      - "16686:16686"  # UI
+      - "4318:4318"
+      - "16686:16686"
 
   app:
     build: .
@@ -189,7 +149,7 @@ services:
       - jaeger
 ```
 
-### Option 3: Cloud Services
+### Option 4: Cloud Services
 
 **Datadog:**
 ```python
@@ -207,50 +167,44 @@ config = ModalTraceConfig(
 )
 ```
 
+---
+
 ## Next Steps
 
-1. **[Configuration Guide](Configuration)** - Learn about all configuration options
-2. **[API Reference](API-Reference)** - Explore the full API
-3. **[Examples](Examples)** - See real-world usage patterns
-4. **[Architecture](Architecture)** - Understand the system design
+- [Configuration Reference](Configuration) — all configuration options
+- [API Reference](API-Reference) — full API
+- [Examples](Examples) — real-world patterns
+- [Architecture](Architecture) — system design
+
+---
 
 ## Troubleshooting
 
-### Spans not appearing
+**Spans not appearing**
 
-1. Check OTLP endpoint is reachable:
-   ```python
-   import urllib.request
-   urllib.request.urlopen("http://localhost:4318/v1/traces")
-   ```
+1. Verify the OTLP endpoint is reachable: `curl http://localhost:4318/v1/traces`
+2. Confirm `service_name` is set
+3. Check that your backend is running
 
-2. Verify service name is set:
-   ```python
-   from modaltrace import ModalTraceConfig
-   config = ModalTraceConfig(service_name="my-service")
-   ```
-
-3. Check logs for errors
-
-### Import errors
-
-Make sure all dependencies are installed:
+**Import errors**
 
 ```bash
 pip install modaltrace[all]
 ```
 
-### High memory usage
-
-Reduce ring buffer size or increase flush interval:
+**High memory usage**
 
 ```python
 config = ModalTraceConfig(
-    ring_buffer_size=256,  # Default is 512
-    metrics_flush_interval_ms=2000,  # Default is 1000
+    ring_buffer_size=256,          # default: 512
+    metrics_flush_interval_ms=2000 # default: 1000
 )
 ```
 
-## Common Issues
+**GPU monitoring shows no data**
 
-See [FAQ](FAQ) for more troubleshooting.
+1. Check `nvidia-smi` to confirm the GPU is visible
+2. Install `pynvml`: `pip install pynvml`
+3. Set `MODALTRACE_GPU_MONITORING=true`
+
+See [FAQ](FAQ) for more.

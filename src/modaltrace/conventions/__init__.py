@@ -7,8 +7,10 @@ from modaltrace.conventions.attributes import (
     PipelineAttributes,
     TransportAttributes,
 )
+from modaltrace.conventions.namespaces import NAMESPACE
 
 __all__ = [
+    "NAMESPACE",
     "PipelineAttributes",
     "InferenceAttributes",
     "ModalAttributes",

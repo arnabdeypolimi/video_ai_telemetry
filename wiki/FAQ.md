@@ -1,57 +1,44 @@
 # Frequently Asked Questions
 
-## General Questions
+## General
 
-### Q: What is ModalTrace?
-A: ModalTrace is an open-source OpenTelemetry library that provides observability for real-time AI video applications. It captures traces, metrics, and logs with minimal performance overhead.
+**What is ModalTrace?**
+An OpenTelemetry library for real-time AI video pipelines. It captures traces, metrics, and logs with frame-level granularity, A/V sync tracking, and GPU monitoring not found in general-purpose APM tools.
 
-### Q: What are the system requirements?
-A: Python 3.10 or later. Optional dependencies include PyTorch, pynvml for GPU monitoring, and aiortc for WebRTC support.
+**How does ModalTrace compare to Langfuse, Datadog, or W&B?**
+Those tools target LLM apps, enterprise APM, or batch training respectively. ModalTrace is purpose-built for real-time video AI: frame-level metrics, A/V sync drift, and pipeline stage tracing. Since it exports standard OTLP, it can work alongside any of them. See the [full comparison](https://github.com/arnabdeypolimi/video_ai_telemetry/blob/main/docs/COMPARISON.md).
 
-### Q: Is ModalTrace free?
-A: Yes! ModalTrace is licensed under Apache-2.0, a permissive open-source license.
+**What Python versions are supported?**
+Python 3.10, 3.11, and 3.12.
 
-### Q: How does ModalTrace compare to Langfuse, Datadog, or W&B?
-A: ModalTrace is the only observability library purpose-built for real-time video AI pipelines. Tools like Langfuse focus on LLM apps, Datadog on enterprise APM, and W&B on batch training — none offer native frame-level metrics, A/V sync tracking, or video pipeline stage tracing. Since ModalTrace exports standard OTLP, it works alongside any of these tools. See the [full comparison](https://github.com/arnabdeypolimi/video_ai_telemetry/blob/main/docs/COMPARISON.md) for details.
+---
 
 ## Installation & Setup
 
-### Q: How do I install ModalTrace?
-A: Install from PyPI:
+**How do I install ModalTrace?**
 ```bash
 pip install modaltrace
-```
-
-Or with optional features:
-```bash
+# with optional features:
 pip install modaltrace[pytorch,gpu,webrtc]
 ```
 
-### Q: Which Python versions are supported?
-A: Python 3.10, 3.11, and 3.12.
+**Do I need an observability backend?**
+No, but you won't see telemetry without one. Use the built-in dashboard (`pip install modaltrace[dashboard]`) for local development, or Jaeger for a lightweight local backend.
 
-### Q: I'm getting an import error. What's wrong?
-A: Make sure all dependencies are installed:
-```bash
-pip install modaltrace[all]
-```
-
-### Q: Do I need an observability backend to use ModalTrace?
-A: No, but without one you won't see the telemetry. We recommend Jaeger for local development.
+---
 
 ## Configuration
 
-### Q: How do I configure ModalTrace?
-A: Three ways (in order of precedence):
-1. Python code: `ModalTraceConfig(service_name="my-app")`
+**How do I configure ModalTrace?**
+Three ways, in order of precedence:
+1. Python: `ModalTraceConfig(service_name="my-app")`
 2. Environment variables: `MODALTRACE_SERVICE_NAME=my-app`
-3. Default values
+3. Defaults
 
-### Q: What's the default OTLP endpoint?
-A: `http://localhost:4318` (assumes local Jaeger or OpenTelemetry Collector)
+**What is the default OTLP endpoint?**
+`http://localhost:4318`
 
-### Q: How do I export to Datadog?
-A: Set the OTLP endpoint and headers:
+**How do I export to Datadog?**
 ```python
 config = ModalTraceConfig(
     otlp_endpoint="https://opentelemetry.datadoghq.com/v1/traces",
@@ -59,72 +46,61 @@ config = ModalTraceConfig(
 )
 ```
 
-### Q: Can I use multiple backends?
-A: No, but you can use an OpenTelemetry Collector to forward to multiple backends.
+**Can I use multiple backends simultaneously?**
+Not directly, but you can route through an OpenTelemetry Collector configured to fan out to multiple backends.
+
+---
 
 ## Performance
 
-### Q: What's the performance overhead?
-A: Typically < 5% for ring buffer metrics. Varies based on configuration and workload.
+**What is the performance overhead?**
+Typically < 5% for ring buffer metrics. Varies based on configuration and workload.
 
-### Q: How much memory does ModalTrace use?
-A: Default ~50MB. Can be reduced with smaller ring buffer size.
+**How much memory does ModalTrace use?**
+~50MB with defaults. Reduce with a smaller ring buffer:
 
-### Q: Can I reduce memory usage?
-A: Yes:
 ```python
 config = ModalTraceConfig(
-    ring_buffer_size=256,  # Default is 512
-    metrics_flush_interval_ms=2000,  # Default is 1000
+    ring_buffer_size=256,          # default: 512
+    metrics_flush_interval_ms=2000 # default: 1000
 )
 ```
 
-### Q: What if spans aren't being captured?
-A: Check:
-1. Instrumentation is enabled in config
-2. OTLP endpoint is reachable
-3. Service name is set
-4. Backend is running
+---
 
 ## Features
 
-### Q: Does ModalTrace support my framework?
-A: ModalTrace provides auto-instrumentation for PyTorch and GPU operations. For other frameworks, use the manual API.
+**Does ModalTrace support my framework?**
+Auto-instrumentation is provided for PyTorch and GPU (NVIDIA). For other frameworks, use the manual tracing API.
 
-### Q: Can I create custom spans?
-A: Yes:
+**Does ModalTrace support asyncio?**
+Yes, with automatic context propagation via `contextvars`. For thread/process pools, use `propagate_context`:
+
 ```python
-from modaltrace import get_tracer
-tracer = get_tracer(__name__)
-with tracer.start_as_current_span("my_operation"):
-    # Your code
+from modaltrace.tracing.propagation import propagate_context
+from concurrent.futures import ThreadPoolExecutor
+
+with ThreadPoolExecutor() as executor:
+    executor.submit(propagate_context(my_function))
 ```
 
-### Q: What about custom metrics?
-A: Yes:
-```python
-from modaltrace import get_meter
-meter = get_meter(__name__)
-histogram = meter.create_histogram("custom.metric")
-histogram.record(value)
-```
-
-### Q: Does ModalTrace support asynchronous code?
-A: Yes, full asyncio support with automatic context propagation.
+---
 
 ## Security & Privacy
 
-### Q: Is telemetry data secure?
-A: ModalTrace exports to your own OTLP backend. Data transmission security depends on your backend configuration (use HTTPS/TLS).
+**Can ModalTrace redact sensitive data?**
+Yes. PII scrubbing is enabled by default. Add custom regex patterns or a callback:
 
-### Q: Can ModalTrace redact sensitive data?
-A: Yes, PII scrubbing is enabled by default with customizable patterns.
+```python
+config = ModalTraceConfig(
+    scrubbing_patterns=[r'\b\d{3}-\d{2}-\d{4}\b']  # SSN
+)
+```
 
-### Q: What data does ModalTrace collect?
-A: Only what you explicitly record in spans, metrics, and logs. No automatic data collection beyond framework events.
+**What data does ModalTrace collect?**
+Only what you explicitly record in spans, metrics, and logs. No telemetry is sent to Anthropic or any third party — data goes to your configured OTLP backend.
 
-### Q: Can I disable certain features?
-A: Yes, use feature flags:
+**Can I disable individual features?**
 ```python
 config = ModalTraceConfig(
     pytorch_instrumentation=False,
@@ -133,68 +109,21 @@ config = ModalTraceConfig(
 )
 ```
 
+---
+
 ## Troubleshooting
 
-### Q: Spans aren't appearing in my backend
-A:
-1. Verify OTLP endpoint is correct: `curl http://localhost:4318/v1/traces`
-2. Check service_name is set
-3. Ensure backend is running
-4. Check logs for errors
-5. Verify network connectivity
+**Spans aren't appearing in my backend**
+1. Verify the endpoint: `curl http://localhost:4318/v1/traces`
+2. Check `service_name` is set
+3. Confirm the backend is running
+4. Check logs for export errors
 
-### Q: High memory usage
-A: Reduce buffer size or increase flush intervals:
-```python
-config = ModalTraceConfig(
-    ring_buffer_size=256,
-    metrics_flush_interval_ms=2000,
-)
-```
-
-### Q: PyTorch instrumentation not working
-A: Ensure PyTorch is installed:
-```bash
-pip install torch
-```
-
-### Q: GPU monitoring shows no data
-A:
-1. Check if NVIDIA GPU is installed: `nvidia-smi`
-2. Install pynvml: `pip install pynvml`
-3. Enable GPU monitoring: `MODALTRACE_GPU_MONITORING=true`
-
-### Q: Asyncio context not propagating
-A: Use the context propagation API:
-```python
-from modaltrace.tracing.propagation import propagate_context
-with ThreadPoolExecutor() as executor:
-    executor.submit(propagate_context(my_function))
-```
-
-## Contributing
-
-### Q: How can I contribute?
-A: See the [Contributing Guide](Contributing) in the repository.
-
-### Q: Where do I report bugs?
-A: Open an [issue](https://github.com/arnabdeypolimi/video_ai_telemetry/issues) on GitHub.
-
-### Q: Can I request features?
-A: Yes, open a [feature request](https://github.com/arnabdeypolimi/video_ai_telemetry/issues) on GitHub.
-
-## Getting Help
-
-### Q: Where can I get help?
-A:
-1. Check this FAQ
-2. Read the [documentation](https://github.com/arnabdeypolimi/video_ai_telemetry/wiki)
-3. Open a [GitHub issue](https://github.com/arnabdeypolimi/video_ai_telemetry/issues)
-4. Check the [Examples](Examples) page
-
-### Q: Is there a Slack/Discord community?
-A: Not yet, but you're welcome to open discussions on GitHub.
+**GPU monitoring shows no data**
+1. Confirm `nvidia-smi` works
+2. Install `pynvml`: `pip install pynvml`
+3. Set `MODALTRACE_GPU_MONITORING=true`
 
 ---
 
-Can't find your answer? [Open an issue](https://github.com/arnabdeypolimi/video_ai_telemetry/issues) and we'll help!
+[Open an issue](https://github.com/arnabdeypolimi/video_ai_telemetry/issues) if your question isn't answered here.
