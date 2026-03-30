@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 import random
+import threading
 import time
 from typing import Any
 
@@ -24,6 +25,7 @@ _anomaly_threshold_ms: float = 50.0
 _track_memory: bool = True
 _track_shapes: bool = False
 _aggregator = None
+_instrument_lock = threading.Lock()
 
 
 def instrument_pytorch(
@@ -47,42 +49,44 @@ def instrument_pytorch(
         logger.debug("PyTorch not available, skipping instrumentation")
         return False
 
-    if _original_module_call is not None:
-        logger.debug("PyTorch already instrumented")
+    with _instrument_lock:
+        if _original_module_call is not None:
+            logger.debug("PyTorch already instrumented")
+            return True
+
+        _tracer = tracer
+        _sampler_rate = sample_rate
+        _anomaly_threshold_ms = anomaly_threshold_ms
+        _track_memory = track_memory
+        _track_shapes = track_shapes
+        _aggregator = aggregator
+
+        _original_module_call = torch.nn.Module.__call__
+
+        def patched_call(self, *args, **kwargs):
+            return _instrumented_call(self, *args, **kwargs)
+
+        torch.nn.Module.__call__ = patched_call
+        logger.debug("PyTorch instrumentation installed")
         return True
-
-    _tracer = tracer
-    _sampler_rate = sample_rate
-    _anomaly_threshold_ms = anomaly_threshold_ms
-    _track_memory = track_memory
-    _track_shapes = track_shapes
-    _aggregator = aggregator
-
-    _original_module_call = torch.nn.Module.__call__
-
-    def patched_call(self, *args, **kwargs):
-        return _instrumented_call(self, *args, **kwargs)
-
-    torch.nn.Module.__call__ = patched_call
-    logger.debug("PyTorch instrumentation installed")
-    return True
 
 
 def uninstrument_pytorch() -> None:
     """Restore the original torch.nn.Module.__call__."""
     global _original_module_call
 
-    if _original_module_call is None:
-        return
+    with _instrument_lock:
+        if _original_module_call is None:
+            return
 
-    try:
-        import torch
+        try:
+            import torch
 
-        torch.nn.Module.__call__ = _original_module_call
-        _original_module_call = None
-        logger.debug("PyTorch instrumentation removed")
-    except ImportError:
-        _original_module_call = None
+            torch.nn.Module.__call__ = _original_module_call
+            _original_module_call = None
+            logger.debug("PyTorch instrumentation removed")
+        except ImportError:
+            _original_module_call = None
 
 
 def _instrumented_call(module, *args, **kwargs):
