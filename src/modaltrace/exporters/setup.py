@@ -65,7 +65,7 @@ def setup_logger_provider(config: ModalTraceConfig, resource: Resource):
 def _create_span_exporter(config: ModalTraceConfig):
     endpoint = str(config.otlp_endpoint).rstrip("/")
     headers = config.otlp_headers
-    timeout = config.otlp_timeout_ms // 1000
+    timeout = max(1, config.otlp_timeout_ms // 1000)
 
     if config.otlp_protocol == "grpc":
         from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
@@ -87,7 +87,7 @@ def _create_span_exporter(config: ModalTraceConfig):
 def _create_metric_exporter(config: ModalTraceConfig):
     endpoint = str(config.otlp_endpoint).rstrip("/")
     headers = config.otlp_headers
-    timeout = config.otlp_timeout_ms // 1000
+    timeout = max(1, config.otlp_timeout_ms // 1000)
 
     if config.otlp_protocol == "grpc":
         from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
@@ -109,7 +109,7 @@ def _create_metric_exporter(config: ModalTraceConfig):
 def _create_log_exporter(config: ModalTraceConfig):
     endpoint = str(config.otlp_endpoint).rstrip("/")
     headers = config.otlp_headers
-    timeout = config.otlp_timeout_ms // 1000
+    timeout = max(1, config.otlp_timeout_ms // 1000)
 
     if config.otlp_protocol == "grpc":
         from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
