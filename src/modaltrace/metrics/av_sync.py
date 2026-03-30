@@ -55,6 +55,8 @@ class AVSyncTracker:
         now_ns = time.time_ns()
         expiry_ns = now_ns + int(self._chunk_ttl_s * 1e9)
         with self._lock:
+            # Cleanup expired entries to prevent unbounded memory growth
+            self._cleanup_expired_unlocked(now_ns)
             self._pending[chunk_id] = (now_ns, expiry_ns)
 
     def frame_rendered(self, chunk_id: int) -> float | None:
@@ -91,15 +93,21 @@ class AVSyncTracker:
 
         return drift_ms
 
+    def _cleanup_expired_unlocked(self, now_ns: int) -> int:
+        """Remove expired pending chunks (caller must hold lock).
+
+        Returns number of chunks cleaned up.
+        """
+        expired = [cid for cid, (_, expiry_ns) in self._pending.items() if now_ns > expiry_ns]
+        for cid in expired:
+            del self._pending[cid]
+        return len(expired)
+
     def cleanup_expired(self) -> int:
         """Remove expired pending chunks. Returns number of chunks cleaned up."""
         now_ns = time.time_ns()
-        expired_count = 0
         with self._lock:
-            expired = [cid for cid, (_, expiry_ns) in self._pending.items() if now_ns > expiry_ns]
-            for cid in expired:
-                del self._pending[cid]
-                expired_count += 1
+            expired_count = self._cleanup_expired_unlocked(now_ns)
 
         if expired_count > 0:
             self._instruments.av_sync_unmatched.add(expired_count)
