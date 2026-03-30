@@ -69,16 +69,19 @@ class GPUMonitor:
             return False
 
         indices = self._device_indices or list(range(device_count))
-        self._handles = []
+        handles = []
         for idx in indices:
             try:
                 handle = pynvml.nvmlDeviceGetHandleByIndex(idx)
-                self._handles.append((idx, handle))
+                handles.append((idx, handle))
             except Exception:
                 logger.debug("Failed to get handle for GPU %d", idx)
 
-        if not self._handles:
+        if not handles:
             return False
+
+        with self._lock:
+            self._handles = handles
 
         self._thread = threading.Thread(target=self._poll_loop, daemon=True, name=f"{_NS}-gpu")
         self._thread.start()
@@ -107,8 +110,12 @@ class GPUMonitor:
     def _poll(self) -> None:
         import pynvml
 
+        # Copy handles under lock to avoid race with start()
+        with self._lock:
+            handles = list(self._handles)
+
         readings = []
-        for idx, handle in self._handles:
+        for idx, handle in handles:
             reading = GPUReading(device_index=idx)
 
             try:
